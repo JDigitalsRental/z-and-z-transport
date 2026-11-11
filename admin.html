@@ -1,129 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
- <head>
-  <meta charset="utf-8"/>
-  <meta content="width=device-width, initial-scale=1" name="viewport"/>
-  <title>
-   Z &amp; Z Transport | Admin Dashboard
-  </title>
-  <link href="admin-styles.css" rel="stylesheet"/>
- </head>
- <body>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Z &amp; Z Transport | Admin Dashboard</title>
+  <link href="admin-styles.css" rel="stylesheet" />
+  <style>
+    .vehicle-panel { margin-top: 24px; }
+    .vehicle-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+    .vehicle-fields label { display: grid; gap: 7px; font-weight: 600; }
+    .vehicle-fields input, .vehicle-fields select, .vehicle-fields textarea { width: 100%; box-sizing: border-box; padding: 11px; border: 1px solid #655332; border-radius: 8px; background: #111216; color: #fff; }
+    .vehicle-fields .wide { grid-column: 1 / -1; }
+    .vehicle-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+    .vehicle-list { display: grid; gap: 14px; margin-top: 18px; }
+    .vehicle-admin-card { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 16px; padding: 16px; border: 1px solid #5c4a2b; border-radius: 12px; background: #151518; }
+    .vehicle-admin-card img { width: 150px; height: 100px; object-fit: cover; border-radius: 8px; }
+    .vehicle-admin-card .info { flex: 1; min-width: 190px; }
+    .vehicle-admin-card h3 { margin: 0 0 6px; }
+    .vehicle-admin-card p { margin: 4px 0; }
+    .vehicle-admin-card .buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
   <header>
-   <div>
-    <h1>
-     Z &amp; Z TRANSPORT SERVICES
-    </h1>
-    <small>
-     SECURE ADMIN DASHBOARD • V1
-    </small>
-   </div>
-   <div>
-    <span class="muted" id="adminEmail">
-    </span>
-    <button class="hide" id="logout">
-     Log out
-    </button>
-   </div>
+    <div>
+      <h1>Z &amp; Z TRANSPORT SERVICES</h1>
+      <small>SECURE ADMIN DASHBOARD • V2</small>
+    </div>
+    <div>
+      <span class="muted" id="adminEmail"></span>
+      <button class="hide" id="logout">Log out</button>
+    </div>
   </header>
+
   <main>
-   <section class="panel login" id="loginSection">
-    <h2>
-     Admin sign in
-    </h2>
-    <p class="note">
-     Use the Firebase Email/Password admin account you created for this project.
-    </p>
-    <form id="loginForm">
-     <label class="field" for="email">
-      Email
-     </label>
-     <input autocomplete="username" id="email" required="" type="email"/>
-     <label class="field" for="password">
-      Password
-     </label>
-     <input autocomplete="current-password" id="password" required="" type="password"/>
-     <p>
-      <button class="primary" id="loginBtn" type="submit">
-       Sign in
-      </button>
-     </p>
-    </form>
-    <p class="message" id="loginMsg" role="status">
-    </p>
-   </section>
-   <section class="hide" id="dashboard">
-    <div class="top">
-     <div>
-      <h2>
-       Booking inquiries
-      </h2>
-      <p class="note">
-       Live updates from Firebase • Customer inquiries are not confirmed until approved.
-      </p>
-     </div>
-     <button id="exportBtn">
-      Export visible CSV
-     </button>
-    </div>
-    <div class="stats">
-     <div class="stat">
-      Total
-      <strong id="total">
-       0
-      </strong>
-     </div>
-     <div class="stat">
-      Pending
-      <strong id="pending">
-       0
-      </strong>
-     </div>
-     <div class="stat">
-      Confirmed
-      <strong id="confirmed">
-       0
-      </strong>
-     </div>
-     <div class="stat">
-      Completed
-      <strong id="completed">
-       0
-      </strong>
-     </div>
-    </div>
-    <div class="panel">
-     <div class="tools">
-      <input aria-label="Search bookings" id="search" placeholder="Search customer, phone, vehicle, destination…"/>
-      <select aria-label="Filter by status" id="filter">
-       <option value="all">
-        All statuses
-       </option>
-       <option value="pending">
-        Pending
-       </option>
-       <option value="confirmed">
-        Confirmed
-       </option>
-       <option value="declined">
-        Declined
-       </option>
-       <option value="completed">
-        Completed
-       </option>
-      </select>
-      <button id="refresh">
-       Refresh
-      </button>
-     </div>
-     <p class="message" id="dashboardMsg" role="status">
-     </p>
-     <div class="list" id="bookings">
-     </div>
-    </div>
-   </section>
+    <section class="panel login" id="loginSection">
+      <h2>Admin sign in</h2>
+      <p class="note">Use the Firebase Email/Password admin account you created for this project.</p>
+      <form id="loginForm">
+        <label class="field" for="email">Email</label>
+        <input autocomplete="username" id="email" required type="email" />
+        <label class="field" for="password">Password</label>
+        <input autocomplete="current-password" id="password" required type="password" />
+        <p><button class="primary" id="loginBtn" type="submit">Sign in</button></p>
+      </form>
+      <p class="message" id="loginMsg" role="status"></p>
+    </section>
+
+    <section class="hide" id="dashboard">
+      <div class="top">
+        <div>
+          <h2>Booking inquiries</h2>
+          <p class="note">Live updates from Firebase • Customer inquiries are not confirmed until approved.</p>
+        </div>
+        <button id="exportBtn">Export visible CSV</button>
+      </div>
+
+      <div class="stats">
+        <div class="stat">Total <strong id="total">0</strong></div>
+        <div class="stat">Pending <strong id="pending">0</strong></div>
+        <div class="stat">Confirmed <strong id="confirmed">0</strong></div>
+        <div class="stat">Completed <strong id="completed">0</strong></div>
+      </div>
+
+      <div class="panel">
+        <div class="tools">
+          <input aria-label="Search bookings" id="search" placeholder="Search customer, phone, vehicle, destination…" />
+          <select aria-label="Filter by status" id="filter">
+            <option value="all">All statuses</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="declined">Declined</option>
+            <option value="completed">Completed</option>
+          </select>
+          <button id="refresh">Refresh</button>
+        </div>
+        <p class="message" id="dashboardMsg" role="status"></p>
+        <div class="list" id="bookings"></div>
+      </div>
+
+      <section class="panel vehicle-panel" aria-labelledby="vehicleHeading">
+        <h2 id="vehicleHeading">Manage Vehicles</h2>
+        <p class="note">Manage vehicle listings in Firestore. Photo URLs must point to publicly accessible images. Vehicle listings will appear on the customer website after its separate V2 update.</p>
+
+        <form id="vehicleForm">
+          <input type="hidden" id="editingVehicleId" />
+          <div class="vehicle-fields">
+            <label>Vehicle name *
+              <input id="vehicleName" maxlength="100" required placeholder="e.g. Toyota Vios" />
+            </label>
+            <label>Category *
+              <select id="vehicleCategory" required>
+                <option value="sedan">Sedan / Car</option>
+                <option value="suv">SUV</option>
+                <option value="van">Van / MPV</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+            <label>Passenger capacity *
+              <input id="vehicleSeats" type="number" min="1" max="100" required value="4" />
+            </label>
+            <label>Self-drive price / day (₱) *
+              <input id="vehicleSelfPrice" type="number" min="0" step="1" required value="0" />
+            </label>
+            <label>With-driver price / day (₱) *
+              <input id="vehicleDriverPrice" type="number" min="0" step="1" required value="0" />
+            </label>
+            <label>Availability *
+              <select id="vehicleStatus">
+                <option value="available">Available</option>
+                <option value="booked">Booked</option>
+                <option value="maintenance">Maintenance</option>
+              </select>
+            </label>
+            <label class="wide">Public photo URL (https://)
+              <input id="vehicleImage" type="url" placeholder="https://example.com/vehicle.jpg" />
+            </label>
+            <label class="wide">Description
+              <textarea id="vehicleDescription" rows="3" maxlength="500" placeholder="Vehicle details"></textarea>
+            </label>
+            <label class="wide"><span><input id="vehicleVisible" type="checkbox" checked /> Show on customer website</span></label>
+          </div>
+          <div class="vehicle-actions">
+            <button class="primary" type="submit" id="vehicleSaveBtn">Add vehicle</button>
+            <button type="button" id="vehicleCancelBtn">Clear / Cancel edit</button>
+          </div>
+        </form>
+
+        <p class="message" id="vehicleMsg" role="status"></p>
+        <div id="vehicleList" class="vehicle-list"></div>
+      </section>
+    </section>
   </main>
-  <script src="admin.js" type="module">
-  </script>
- </body>
+
+  <script type="module" src="admin.js?v=2"></script>
+</body>
 </html>
