@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Z &amp; Z Transport | Admin Dashboard V5</title>
+<link href="admin-styles.css" rel="stylesheet"/>
+<style>
+    .vehicle-panel { margin-top: 24px; }
+    .vehicle-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+    .vehicle-fields label { display: grid; gap: 7px; font-weight: 600; }
+    .vehicle-fields input, .vehicle-fields select, .vehicle-fields textarea { width: 100%; box-sizing: border-box; padding: 11px; border: 1px solid #655332; border-radius: 8px; background: #111216; color: #fff; }
+    .vehicle-fields .wide { grid-column: 1 / -1; }
+    .vehicle-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+    .vehicle-list { display: grid; gap: 14px; margin-top: 18px; }
+    .vehicle-admin-card { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 16px; padding: 16px; border: 1px solid #5c4a2b; border-radius: 12px; background: #151518; }
+    .vehicle-admin-card img { width: 150px; height: 100px; object-fit: cover; border-radius: 8px; }
+    .vehicle-admin-card .info { flex: 1; min-width: 190px; }
+    .vehicle-admin-card h3 { margin: 0 0 6px; }
+    .vehicle-admin-card p { margin: 4px 0; }
+    .vehicle-admin-card .buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+  </style>
+<style>
+/* V5 extension; existing admin styling remains intact. */
+.v5-tabs{display:flex;flex-wrap:wrap;gap:9px;margin:18px 0}
+.v5-tabs button[aria-selected="true"]{background:linear-gradient(110deg,#cda450,#f0d28c);color:#19140b}
+.v5-view[hidden]{display:none!important}
+.v5-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:16px 0}
+.v5-stat{background:#111216;border:1px solid #51442f;border-radius:12px;padding:17px}
+.v5-stat strong{display:block;font-size:25px;color:var(--gold)}
+.v5-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.v5-field{display:grid;gap:6px;color:var(--gold);font-weight:600}
+.v5-field input,.v5-field select,.v5-field textarea{width:100%;background:#111216;color:#fff;border:1px solid #655332;border-radius:8px;padding:11px}
+.v5-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.v5-day{border:1px solid #50432e;border-radius:8px;padding:7px;min-height:78px;overflow-wrap:anywhere;font-size:12px}
+.v5-day .date{font-weight:800;color:var(--gold)}
+.v5-event{display:block;margin:4px 0;padding:3px 5px;border-radius:5px;background:#3c3322;font-size:11px}
+.v5-list{display:grid;gap:10px;margin-top:14px}
+.v5-item{padding:12px;background:#111216;border:1px solid #51442f;border-radius:10px;overflow-wrap:anywhere}
+.v5-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.v5-muted{color:var(--muted);font-size:13px}
+@media(max-width:650px){.v5-day{min-height:62px;padding:4px;font-size:10px}.v5-event{font-size:9px}.v5-tabs button{flex:1 1 42%}}
+</style></head>
+<body>
+<header>
+<div>
+<h1>Z &amp; Z TRANSPORT SERVICES</h1>
+<small>SECURE ADMIN DASHBOARD • V5</small>
+</div>
+<div>
+<span class="muted" id="adminEmail"></span>
+<button class="hide" id="logout">Log out</button>
+</div>
+</header>
+<main>
+<section class="panel login" id="loginSection">
+<h2>Admin sign in</h2>
+<p class="note">Use the Firebase Email/Password admin account you created for this project.</p>
+<form id="loginForm">
+<label class="field" for="email">Email</label>
+<input autocomplete="username" id="email" required="" type="email"/>
+<label class="field" for="password">Password</label>
+<input autocomplete="current-password" id="password" required="" type="password"/>
+<p><button class="primary" id="loginBtn" type="submit">Sign in</button></p>
+</form>
+<p class="message" id="loginMsg" role="status"></p>
+</section>
+<section class="hide" id="dashboard">
+<nav aria-label="Admin dashboard sections" class="v5-tabs" id="v5Tabs"><button aria-selected="true" data-v5-tab="bookings" type="button">Bookings</button><button data-v5-tab="calendar" type="button">Calendar</button><button data-v5-tab="analytics" type="button">Analytics</button><button data-v5-tab="maintenance" type="button">Maintenance</button><button data-v5-tab="vehicles" type="button">Vehicles</button></nav><div class="v5-view" data-v5-view="bookings" id="v5Bookings"><div class="top">
+<div>
+<h2>Booking inquiries</h2>
+<p class="note">Live updates from Firebase • Customer inquiries are not confirmed until approved.</p>
+</div>
+<button id="exportBtn">Export visible CSV</button>
+</div><div class="stats">
+<div class="stat">Total <strong id="total">0</strong></div>
+<div class="stat">Pending <strong id="pending">0</strong></div>
+<div class="stat">Confirmed <strong id="confirmed">0</strong></div>
+<div class="stat">Completed <strong id="completed">0</strong></div>
+</div><div class="panel">
+<div class="tools">
+<input aria-label="Search bookings" id="search" placeholder="Search customer, phone, vehicle, destination…"/>
+<select aria-label="Filter by status" id="filter">
+<option value="all">All statuses</option>
+<option value="pending">Pending</option>
+<option value="confirmed">Confirmed</option>
+<option value="declined">Declined</option>
+<option value="completed">Completed</option>
+</select>
+<button id="refresh">Refresh</button>
+</div>
+<p class="message" id="dashboardMsg" role="status"></p>
+<div class="list" id="bookings"></div>
+</div></div>
+
+
+<section aria-labelledby="vehicleHeading" class="panel vehicle-panel v5-view" data-v5-view="vehicles" hidden="">
+<h2 id="vehicleHeading">Manage Vehicles</h2>
+<p class="note">Manage vehicle listings in Firestore. Photo URLs must point to publicly accessible images. Vehicle listings will appear on the customer website after its separate V2 update.</p>
+<form id="vehicleForm">
+<input id="editingVehicleId" type="hidden"/>
+<div class="vehicle-fields">
+<label>Vehicle name *
+              <input id="vehicleName" maxlength="100" placeholder="e.g. Toyota Vios" required=""/>
+</label>
+<label>Category *
+              <select id="vehicleCategory" required="">
+<option value="sedan">Sedan / Car</option>
+<option value="suv">SUV</option>
+<option value="van">Van / MPV</option>
+<option value="other">Other</option>
+</select>
+</label>
+<label>Passenger capacity *
+              <input id="vehicleSeats" max="100" min="1" required="" type="number" value="4"/>
+</label>
+<label>Self-drive price / day (₱) *
+              <input id="vehicleSelfPrice" min="0" required="" step="1" type="number" value="0"/>
+</label>
+<label>With-driver price / day (₱) *
+              <input id="vehicleDriverPrice" min="0" required="" step="1" type="number" value="0"/>
+</label>
+<label>Availability *
+              <select id="vehicleStatus">
+<option value="available">Available</option>
+<option value="booked">Booked</option>
+<option value="maintenance">Maintenance</option>
+</select>
+</label>
+<label class="wide">Public photo URL (https://)
+              <input id="vehicleImage" placeholder="https://example.com/vehicle.jpg" type="url"/>
+</label>
+<label class="wide">Description
+              <textarea id="vehicleDescription" maxlength="500" placeholder="Vehicle details" rows="3"></textarea>
+</label>
+<label class="wide"><span><input checked="" id="vehicleVisible" type="checkbox"/> Show on customer website</span></label>
+</div>
+<div class="vehicle-actions">
+<button class="primary" id="vehicleSaveBtn" type="submit">Add vehicle</button>
+<button id="vehicleCancelBtn" type="button">Clear / Cancel edit</button>
+</div>
+</form>
+<p class="message" id="vehicleMsg" role="status"></p>
+<div class="vehicle-list" id="vehicleList"></div>
+</section>
+<section class="panel v5-view" data-v5-view="calendar" hidden="" id="v5CalendarView">
+<h2>Smart Booking Calendar</h2><p class="note">Confirmed bookings only. Pending inquiries do not block a vehicle.</p>
+<div class="v5-actions"><button id="v5PrevMonth" type="button">← Previous</button><strong id="v5MonthTitle"></strong><button id="v5NextMonth" type="button">Next →</button></div>
+<div aria-label="Booking calendar" class="v5-calendar" id="v5Calendar"></div>
+<p class="message" id="v5CalendarMessage" role="status"></p>
+</section><section class="panel v5-view" data-v5-view="analytics" hidden="" id="v5AnalyticsView">
+<h2>Business Analytics</h2><p class="note">Booking-based estimates; revenue is counted only when a confirmed/completed booking has an admin-set final amount.</p>
+<div class="v5-stats"><div class="v5-stat">Total inquiries<strong id="v5Total">0</strong></div><div class="v5-stat">Upcoming pickups<strong id="v5Upcoming">0</strong></div><div class="v5-stat">Completed bookings<strong id="v5Completed">0</strong></div><div class="v5-stat">Recorded revenue<strong id="v5Revenue">₱0</strong></div></div>
+<h3>Most Requested Vehicles</h3><div class="v5-list" id="v5Popular"></div>
+<h3>Pickup &amp; Return Reminders</h3><p class="note">Shown while the dashboard is open; external notifications require separate integration.</p><div class="v5-list" id="v5Reminders"></div>
+</section><section class="panel v5-view" data-v5-view="maintenance" hidden="" id="v5MaintenanceView">
+<h2>Vehicle Maintenance Tracker</h2><p class="note">Admin-only records saved in Firestore.</p>
+<form id="v5MaintenanceForm"><div class="v5-grid">
+<label class="v5-field">Vehicle *<select id="v5MaintenanceVehicle" required=""></select></label>
+<label class="v5-field">Service type *<input id="v5MaintenanceType" maxlength="120" placeholder="PMS / Oil change" required=""/></label>
+<label class="v5-field">Service date *<input id="v5MaintenanceDate" required="" type="date"/></label>
+<label class="v5-field">Next due date<input id="v5MaintenanceDue" type="date"/></label>
+<label class="v5-field">Cost (₱)<input id="v5MaintenanceCost" min="0" step="0.01" type="number" value="0"/></label>
+<label class="v5-field">Notes<textarea id="v5MaintenanceNotes" maxlength="500"></textarea></label>
+</div><div class="v5-actions"><button class="primary" id="v5MaintenanceSave" type="submit">Save maintenance record</button></div></form>
+<p class="message" id="v5MaintenanceMessage" role="status"></p><div class="v5-list" id="v5MaintenanceList"></div>
+</section></section>
+</main>
+<script src="admin.js?v=2" type="module"></script>
+<script src="admin-v5.js?v=5" type="module"></script></body>
+</html>
