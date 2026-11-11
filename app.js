@@ -319,3 +319,92 @@ window.addEventListener('zz-inquiry-ready', async ({ detail }) => {
     saving = false;
   }
 });
+
+// =============================================================
+// V8 EXECUTIVE POPUP BOOKING — presentation only.
+// Preserves the original booking form, Firebase and calculator.
+// =============================================================
+(function initPremiumBookingPopup() {
+  const section = document.getElementById('booking');
+  const form = document.getElementById('bookingForm');
+  if (!section || !form || document.getElementById('zzBookingDialog')) return;
+
+  const style = document.createElement('style');
+  style.id = 'zzBookingPopupStyles';
+  style.textContent = `
+    #zzBookingDialog{position:fixed;inset:0;margin:auto;width:min(1160px,calc(100vw - 28px));max-width:1160px;max-height:min(92dvh,960px);padding:0;overflow:auto;overscroll-behavior:contain;color:var(--text,#f8f5ed);background:#101114;border:1px solid rgba(231,189,101,.6);border-radius:22px;box-shadow:0 30px 110px #000c}
+    #zzBookingDialog::backdrop{background:rgba(0,0,0,.83);backdrop-filter:blur(7px)}
+    #zzBookingDialog:not([open]){display:none}
+    #zzBookingDialog .zz-popup-top{position:sticky;top:0;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;background:rgba(12,13,15,.97);border-bottom:1px solid rgba(231,189,101,.28)}
+    #zzBookingDialog .zz-popup-top strong{font:700 15px/1.4 Georgia,serif;color:#f4d58e;letter-spacing:.05em}
+    #zzBookingDialog .zz-popup-close{width:38px;height:38px;display:grid;place-items:center;border:1px solid #8a6a37;border-radius:10px;background:#171717;color:#f4d58e;font-size:23px;line-height:1;cursor:pointer}
+    #zzBookingDialog .zz-popup-close:hover{background:#332716}
+    #zzBookingDialog #booking{padding:34px 0 40px;background:radial-gradient(circle at 10% 10%,rgba(160,111,40,.12),transparent 45%),#101114}
+    #zzBookingDialog #booking .wrap{max-width:1100px}
+    #zzBookingDialog #booking .booking-layout{grid-template-columns:minmax(0,.76fr) minmax(0,1.24fr);gap:26px}
+    #zzBookingDialog #booking .form-card{box-shadow:none}
+    #zzBookingDialog #booking .lead{font-size:15px}
+    @media(max-width:800px){#zzBookingDialog #booking .booking-layout{grid-template-columns:1fr}#zzBookingDialog #booking{padding:22px 0 28px}#zzBookingDialog #booking .wrap{padding:0 16px}}
+    @media(max-width:560px){#zzBookingDialog{width:calc(100vw - 12px);max-height:96dvh;border-radius:14px}#zzBookingDialog .zz-popup-top{padding:10px 14px}#zzBookingDialog #booking .form-card{padding:17px}#zzBookingDialog #booking .form-grid{grid-template-columns:1fr}}
+  `;
+  document.head.append(style);
+
+  const dialog = document.createElement('dialog');
+  dialog.id = 'zzBookingDialog';
+  dialog.setAttribute('aria-label', 'Request a rental quotation');
+  const top = document.createElement('div');
+  top.className = 'zz-popup-top';
+  const heading = document.createElement('strong');
+  heading.textContent = 'Z & Z · RENTAL INQUIRY';
+  const close = document.createElement('button');
+  close.type = 'button';
+  close.className = 'zz-popup-close';
+  close.setAttribute('aria-label', 'Close booking form');
+  close.textContent = '×';
+  top.append(heading, close);
+  dialog.append(top, section);
+  document.body.append(dialog);
+
+  let returnFocus = null;
+  function openPopup() {
+    if (dialog.open) return;
+    returnFocus = document.activeElement;
+    if (typeof dialog.showModal === 'function') dialog.showModal();
+    else dialog.setAttribute('open', '');
+    dialog.scrollTop = 0;
+  }
+  function closePopup() {
+    if (typeof dialog.close === 'function' && dialog.open) dialog.close();
+    else dialog.removeAttribute('open');
+  }
+  close.addEventListener('click', closePopup);
+  dialog.addEventListener('click', event => {
+    if (event.target === dialog) closePopup();
+  });
+  dialog.addEventListener('close', () => {
+    if (returnFocus && typeof returnFocus.focus === 'function') returnFocus.focus({preventScroll:true});
+  });
+
+  // All existing links pointing at #booking now open the popup.
+  document.addEventListener('click', event => {
+    const link = event.target.closest?.('a[href="#booking"]');
+    if (link) {
+      event.preventDefault();
+      openPopup();
+      return;
+    }
+    // Existing app.js creates fleet inquiry buttons with onclick.
+    const fleetButton = event.target.closest?.('#fleetGrid .vehicle button');
+    if (fleetButton && fleetButton.textContent.includes('INQUIRE ABOUT THIS VEHICLE')) {
+      // The original onclick has already selected the vehicle by the end of this event.
+      openPopup();
+    }
+  });
+
+  // Also supports the existing fleet button's location.hash assignment,
+  // direct #booking URLs, and navigation from other scripts.
+  window.addEventListener('hashchange', () => {
+    if (location.hash === '#booking') openPopup();
+  });
+  if (location.hash === '#booking') openPopup();
+})();
