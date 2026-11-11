@@ -7,7 +7,49 @@
    Z &amp; Z Transport Services | Car Rental &amp; Transport
   </title>
   <meta content="Z &amp; Z Transport Services — self-drive rentals, with-driver trips, and transport inquiries." name="description"/>
-  <link href="styles.css?v=3" rel="stylesheet"/>
+  <link href="styles.css?v=4" rel="stylesheet"/>
+  <style>
+   /* Hero logo only — preserves existing fleet and booking styles. */
+   .hero-card.zz-logo-card {
+    width: 100%;
+    max-width: 420px;
+    justify-self: end;
+    min-height: 0;
+    padding: 26px 24px;
+    background: radial-gradient(circle at 50% 38%, #32220c 0%, #15120e 48%, #08090b 100%);
+    border: 1px solid rgba(224, 179, 84, .55);
+    border-radius: 22px;
+    box-shadow: 0 20px 55px rgba(0, 0, 0, .4);
+    overflow: hidden;
+   }
+   .zz-logo-card .zz-logo-image {
+    display: block;
+    width: 100%;
+    max-width: 340px;
+    height: auto;
+    max-height: 285px;
+    object-fit: contain;
+    margin: 0 auto;
+    border-radius: 10px;
+   }
+   .zz-logo-card .zz-logo-caption {
+    margin: 8px 0 0;
+    color: #e7c777;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .16em;
+   }
+   @media (max-width: 800px) {
+    .hero-card.zz-logo-card {
+     max-width: 380px;
+     margin: 0 auto;
+     justify-self: center;
+     padding: 18px;
+    }
+    .zz-logo-card .zz-logo-image { max-height: 240px; }
+   }
+  </style>
  </head>
  <body>
   <header class="header">
@@ -68,17 +110,10 @@
        All inquiries are subject to vehicle availability and confirmation.
       </p>
      </div>
-     <div class="hero-card" aria-label="Featured Toyota Innova vehicle photo">
-        <div class="hero-photo">
-          <img src="assets/toyota-innova.jpg" alt="Illustrative Toyota Innova vehicle photo" loading="eager" decoding="async"/>
-        </div>
-        <div class="hero-card-content">
-          <span class="hero-kicker">PREMIUM TRANSPORT OPTIONS</span>
-          <strong>Z &amp; Z TRANSPORT</strong>
-          <p>Comfort for every journey.</p>
-          <a class="hero-card-link" href="#fleet">DISCOVER OUR FLEET ↗</a>
-        </div>
-      </div>
+     <div class="hero-card zz-logo-card" aria-label="Z and Z Transport Services official logo">
+      <img class="zz-logo-image" src="assets/zandz-logo.png" alt="Z &amp; Z Transport Services — Premium Car Rentals" loading="eager" decoding="async"/>
+      <p class="zz-logo-caption">YOUR JOURNEY, OUR PRIORITY</p>
+     </div>
     </div>
    </section>
    <section class="section" id="services">
