@@ -1,172 +1,131 @@
-<!DOCTYPE html>
+// Z & Z Transport Services — Admin Dashboard V5 extension.
+// Keep existing admin.js and firebase.js unchanged.
+import { auth, db } from './firebase.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
+import { collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
 
-<html lang="en">
-<head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>Z &amp; Z Transport | Admin Dashboard V5</title>
-<link href="admin-styles.css" rel="stylesheet"/>
-<style>
-    .vehicle-panel { margin-top: 24px; }
-    .vehicle-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
-    .vehicle-fields label { display: grid; gap: 7px; font-weight: 600; }
-    .vehicle-fields input, .vehicle-fields select, .vehicle-fields textarea { width: 100%; box-sizing: border-box; padding: 11px; border: 1px solid #655332; border-radius: 8px; background: #111216; color: #fff; }
-    .vehicle-fields .wide { grid-column: 1 / -1; }
-    .vehicle-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
-    .vehicle-list { display: grid; gap: 14px; margin-top: 18px; }
-    .vehicle-admin-card { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 16px; padding: 16px; border: 1px solid #5c4a2b; border-radius: 12px; background: #151518; }
-    .vehicle-admin-card img { width: 150px; height: 100px; object-fit: cover; border-radius: 8px; }
-    .vehicle-admin-card .info { flex: 1; min-width: 190px; }
-    .vehicle-admin-card h3 { margin: 0 0 6px; }
-    .vehicle-admin-card p { margin: 4px 0; }
-    .vehicle-admin-card .buttons { display: flex; gap: 8px; flex-wrap: wrap; }
-  </style>
-<style>
-/* V5 extension; existing admin styling remains intact. */
-.v5-tabs{display:flex;flex-wrap:wrap;gap:9px;margin:18px 0}
-.v5-tabs button[aria-selected="true"]{background:linear-gradient(110deg,#cda450,#f0d28c);color:#19140b}
-.v5-view[hidden]{display:none!important}
-.v5-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:16px 0}
-.v5-stat{background:#111216;border:1px solid #51442f;border-radius:12px;padding:17px}
-.v5-stat strong{display:block;font-size:25px;color:var(--gold)}
-.v5-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
-.v5-field{display:grid;gap:6px;color:var(--gold);font-weight:600}
-.v5-field input,.v5-field select,.v5-field textarea{width:100%;background:#111216;color:#fff;border:1px solid #655332;border-radius:8px;padding:11px}
-.v5-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
-.v5-day{border:1px solid #50432e;border-radius:8px;padding:7px;min-height:78px;overflow-wrap:anywhere;font-size:12px}
-.v5-day .date{font-weight:800;color:var(--gold)}
-.v5-event{display:block;margin:4px 0;padding:3px 5px;border-radius:5px;background:#3c3322;font-size:11px}
-.v5-list{display:grid;gap:10px;margin-top:14px}
-.v5-item{padding:12px;background:#111216;border:1px solid #51442f;border-radius:10px;overflow-wrap:anywhere}
-.v5-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
-.v5-muted{color:var(--muted);font-size:13px}
-@media(max-width:650px){.v5-day{min-height:62px;padding:4px;font-size:10px}.v5-event{font-size:9px}.v5-tabs button{flex:1 1 42%}}
-</style></head>
-<body>
-<header>
-<div>
-<h1>Z &amp; Z TRANSPORT SERVICES</h1>
-<small>SECURE ADMIN DASHBOARD • V5</small>
-</div>
-<div>
-<span class="muted" id="adminEmail"></span>
-<button class="hide" id="logout">Log out</button>
-</div>
-</header>
-<main>
-<section class="panel login" id="loginSection">
-<h2>Admin sign in</h2>
-<p class="note">Use the Firebase Email/Password admin account you created for this project.</p>
-<form id="loginForm">
-<label class="field" for="email">Email</label>
-<input autocomplete="username" id="email" required="" type="email"/>
-<label class="field" for="password">Password</label>
-<input autocomplete="current-password" id="password" required="" type="password"/>
-<p><button class="primary" id="loginBtn" type="submit">Sign in</button></p>
-</form>
-<p class="message" id="loginMsg" role="status"></p>
-</section>
-<section class="hide" id="dashboard">
-<nav aria-label="Admin dashboard sections" class="v5-tabs" id="v5Tabs"><button aria-selected="true" data-v5-tab="bookings" type="button">Bookings</button><button data-v5-tab="calendar" type="button">Calendar</button><button data-v5-tab="analytics" type="button">Analytics</button><button data-v5-tab="maintenance" type="button">Maintenance</button><button data-v5-tab="vehicles" type="button">Vehicles</button></nav><div class="v5-view" data-v5-view="bookings" id="v5Bookings"><div class="top">
-<div>
-<h2>Booking inquiries</h2>
-<p class="note">Live updates from Firebase • Customer inquiries are not confirmed until approved.</p>
-</div>
-<button id="exportBtn">Export visible CSV</button>
-</div><div class="stats">
-<div class="stat">Total <strong id="total">0</strong></div>
-<div class="stat">Pending <strong id="pending">0</strong></div>
-<div class="stat">Confirmed <strong id="confirmed">0</strong></div>
-<div class="stat">Completed <strong id="completed">0</strong></div>
-</div><div class="panel">
-<div class="tools">
-<input aria-label="Search bookings" id="search" placeholder="Search customer, phone, vehicle, destination…"/>
-<select aria-label="Filter by status" id="filter">
-<option value="all">All statuses</option>
-<option value="pending">Pending</option>
-<option value="confirmed">Confirmed</option>
-<option value="declined">Declined</option>
-<option value="completed">Completed</option>
-</select>
-<button id="refresh">Refresh</button>
-</div>
-<p class="message" id="dashboardMsg" role="status"></p>
-<div class="list" id="bookings"></div>
-</div></div>
+const ADMIN_UID = 'cNsIX5hzu6bbKOZDUsXVrQmdgvy1';
+const $ = id => document.getElementById(id);
+const money = n => '₱' + Number(n || 0).toLocaleString('en-PH', { maximumFractionDigits: 2 });
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+let bookings = [], vehicles = [], maintenance = [];
+let unsubscribers = [];
+let month = new Date(); month.setDate(1);
 
+// Tabs are available only inside the authenticated dashboard.
+for (const button of document.querySelectorAll('[data-v5-tab]')) {
+  button.addEventListener('click', () => {
+    const tab = button.dataset.v5Tab;
+    for (const b of document.querySelectorAll('[data-v5-tab]')) b.setAttribute('aria-selected', String(b === button));
+    for (const view of document.querySelectorAll('[data-v5-view]')) view.hidden = view.dataset.v5View !== tab;
+  });
+}
 
-<section aria-labelledby="vehicleHeading" class="panel vehicle-panel v5-view" data-v5-view="vehicles" hidden="">
-<h2 id="vehicleHeading">Manage Vehicles</h2>
-<p class="note">Manage vehicle listings in Firestore. Photo URLs must point to publicly accessible images. Vehicle listings will appear on the customer website after its separate V2 update.</p>
-<form id="vehicleForm">
-<input id="editingVehicleId" type="hidden"/>
-<div class="vehicle-fields">
-<label>Vehicle name *
-              <input id="vehicleName" maxlength="100" placeholder="e.g. Toyota Vios" required=""/>
-</label>
-<label>Category *
-              <select id="vehicleCategory" required="">
-<option value="sedan">Sedan / Car</option>
-<option value="suv">SUV</option>
-<option value="van">Van / MPV</option>
-<option value="other">Other</option>
-</select>
-</label>
-<label>Passenger capacity *
-              <input id="vehicleSeats" max="100" min="1" required="" type="number" value="4"/>
-</label>
-<label>Self-drive price / day (₱) *
-              <input id="vehicleSelfPrice" min="0" required="" step="1" type="number" value="0"/>
-</label>
-<label>With-driver price / day (₱) *
-              <input id="vehicleDriverPrice" min="0" required="" step="1" type="number" value="0"/>
-</label>
-<label>Availability *
-              <select id="vehicleStatus">
-<option value="available">Available</option>
-<option value="booked">Booked</option>
-<option value="maintenance">Maintenance</option>
-</select>
-</label>
-<label class="wide">Public photo URL (https://)
-              <input id="vehicleImage" placeholder="https://example.com/vehicle.jpg" type="url"/>
-</label>
-<label class="wide">Description
-              <textarea id="vehicleDescription" maxlength="500" placeholder="Vehicle details" rows="3"></textarea>
-</label>
-<label class="wide"><span><input checked="" id="vehicleVisible" type="checkbox"/> Show on customer website</span></label>
-</div>
-<div class="vehicle-actions">
-<button class="primary" id="vehicleSaveBtn" type="submit">Add vehicle</button>
-<button id="vehicleCancelBtn" type="button">Clear / Cancel edit</button>
-</div>
-</form>
-<p class="message" id="vehicleMsg" role="status"></p>
-<div class="vehicle-list" id="vehicleList"></div>
-</section>
-<section class="panel v5-view" data-v5-view="calendar" hidden="" id="v5CalendarView">
-<h2>Smart Booking Calendar</h2><p class="note">Confirmed bookings only. Pending inquiries do not block a vehicle.</p>
-<div class="v5-actions"><button id="v5PrevMonth" type="button">← Previous</button><strong id="v5MonthTitle"></strong><button id="v5NextMonth" type="button">Next →</button></div>
-<div aria-label="Booking calendar" class="v5-calendar" id="v5Calendar"></div>
-<p class="message" id="v5CalendarMessage" role="status"></p>
-</section><section class="panel v5-view" data-v5-view="analytics" hidden="" id="v5AnalyticsView">
-<h2>Business Analytics</h2><p class="note">Booking-based estimates; revenue is counted only when a confirmed/completed booking has an admin-set final amount.</p>
-<div class="v5-stats"><div class="v5-stat">Total inquiries<strong id="v5Total">0</strong></div><div class="v5-stat">Upcoming pickups<strong id="v5Upcoming">0</strong></div><div class="v5-stat">Completed bookings<strong id="v5Completed">0</strong></div><div class="v5-stat">Recorded revenue<strong id="v5Revenue">₱0</strong></div></div>
-<h3>Most Requested Vehicles</h3><div class="v5-list" id="v5Popular"></div>
-<h3>Pickup &amp; Return Reminders</h3><p class="note">Shown while the dashboard is open; external notifications require separate integration.</p><div class="v5-list" id="v5Reminders"></div>
-</section><section class="panel v5-view" data-v5-view="maintenance" hidden="" id="v5MaintenanceView">
-<h2>Vehicle Maintenance Tracker</h2><p class="note">Admin-only records saved in Firestore.</p>
-<form id="v5MaintenanceForm"><div class="v5-grid">
-<label class="v5-field">Vehicle *<select id="v5MaintenanceVehicle" required=""></select></label>
-<label class="v5-field">Service type *<input id="v5MaintenanceType" maxlength="120" placeholder="PMS / Oil change" required=""/></label>
-<label class="v5-field">Service date *<input id="v5MaintenanceDate" required="" type="date"/></label>
-<label class="v5-field">Next due date<input id="v5MaintenanceDue" type="date"/></label>
-<label class="v5-field">Cost (₱)<input id="v5MaintenanceCost" min="0" step="0.01" type="number" value="0"/></label>
-<label class="v5-field">Notes<textarea id="v5MaintenanceNotes" maxlength="500"></textarea></label>
-</div><div class="v5-actions"><button class="primary" id="v5MaintenanceSave" type="submit">Save maintenance record</button></div></form>
-<p class="message" id="v5MaintenanceMessage" role="status"></p><div class="v5-list" id="v5MaintenanceList"></div>
-</section></section>
-</main>
-<script src="admin.js?v=2" type="module"></script>
-<script src="admin-v5.js?v=5" type="module"></script></body>
-</html>
+function make(tag, className, value) {
+  const el = document.createElement(tag);
+  if (className) el.className = className;
+  if (value !== undefined) el.textContent = value;
+  return el;
+}
+function dateKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function dateFromKey(s) { if (!/^\d{4}-\d{2}-\d{2}$/.test(String(s || ''))) return null; const [y,m,d] = s.split('-').map(Number); const v = new Date(y,m-1,d); return v.getFullYear() === y && v.getMonth() === m-1 && v.getDate() === d ? v : null; }
+function overlaps(a,b) { return a.pickupDate < b.returnDate && b.pickupDate < a.returnDate; }
+function bookingEvents(day) {
+  return bookings.filter(b => ['confirmed','completed'].includes(b.status) && b.pickupDate && b.returnDate && b.pickupDate <= day && day < b.returnDate);
+}
+function drawCalendar() {
+  const grid = $('v5Calendar'); grid.replaceChildren();
+  $('v5MonthTitle').textContent = month.toLocaleDateString('en-PH', {month:'long', year:'numeric'});
+  for (const label of ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']) grid.append(make('div','v5-day',label));
+  const offset = new Date(month.getFullYear(), month.getMonth(), 1).getDay();
+  for (let i=0;i<offset;i++) grid.append(make('div','v5-day',''));
+  const days = new Date(month.getFullYear(),month.getMonth()+1,0).getDate();
+  for (let d=1;d<=days;d++) {
+    const key = dateKey(new Date(month.getFullYear(),month.getMonth(),d));
+    const cell = make('div','v5-day'); cell.append(make('div','date',String(d)));
+    for (const b of bookingEvents(key)) {
+      const event = make('span','v5-event',(b.vehicleName || 'Vehicle')+' · '+(b.fullName || 'Booking'));
+      event.title = `Confirmed/completed booking: ${b.pickupDate} to ${b.returnDate}`;
+      cell.append(event);
+    }
+    grid.append(cell);
+  }
+  const conflicts = bookings.filter(a => a.status === 'confirmed' && bookings.some(b => b !== a && b.status === 'confirmed' && a.vehicleId && a.vehicleId === b.vehicleId && overlaps(a,b)));
+  $('v5CalendarMessage').textContent = conflicts.length ? `⚠ ${conflicts.length} confirmed booking(s) may overlap. Check dates before approving new requests.` : 'No overlapping confirmed bookings detected.';
+}
+$('v5PrevMonth').onclick = () => { month.setMonth(month.getMonth()-1); drawCalendar(); };
+$('v5NextMonth').onclick = () => { month.setMonth(month.getMonth()+1); drawCalendar(); };
+
+function drawAnalytics() {
+  $('v5Total').textContent = bookings.length;
+  $('v5Completed').textContent = bookings.filter(b => b.status === 'completed').length;
+  $('v5Upcoming').textContent = bookings.filter(b => b.status === 'confirmed' && b.pickupDate >= today()).length;
+  // finalAmount is an optional admin-maintained value, not a calculated quote.
+  $('v5Revenue').textContent = money(bookings.filter(b => ['confirmed','completed'].includes(b.status)).reduce((sum,b) => sum + (Number(b.finalAmount) || 0),0));
+  const counts = new Map();
+  for (const b of bookings) counts.set(b.vehicleName || 'Unknown vehicle',(counts.get(b.vehicleName || 'Unknown vehicle')||0)+1);
+  const popular = $('v5Popular'); popular.replaceChildren();
+  for (const [name,count] of [...counts].sort((a,b)=>b[1]-a[1]).slice(0,6)) popular.append(make('div','v5-item',`${name} — ${count} inquiries`));
+  if (!counts.size) popular.append(make('p','v5-muted','No inquiries yet.'));
+  const reminders = $('v5Reminders'); reminders.replaceChildren();
+  const now = dateFromKey(today()); const cutoff = new Date(now); cutoff.setDate(cutoff.getDate()+7);
+  const cutoffKey = dateKey(cutoff);
+  for (const b of bookings.filter(b => b.status === 'confirmed')) {
+    for (const [label,date] of [['Pickup',b.pickupDate],['Return',b.returnDate]]) {
+      if (date >= today() && date <= cutoffKey) reminders.append(make('div','v5-item',`${label} · ${date} · ${b.vehicleName || 'Vehicle'} · ${b.fullName || 'Customer'}`));
+    }
+  }
+  if (!reminders.children.length) reminders.append(make('p','v5-muted','No pickups or returns in the next 7 days.'));
+}
+
+function drawVehicleOptions() {
+  const select = $('v5MaintenanceVehicle'); const prev = select.value; select.replaceChildren();
+  for (const v of vehicles) { const o = make('option','',v.name || 'Vehicle'); o.value = v.id; select.append(o); }
+  if (vehicles.some(v => v.id === prev)) select.value = prev;
+}
+function drawMaintenance() {
+  const list = $('v5MaintenanceList'); list.replaceChildren();
+  for (const m of maintenance.slice().sort((a,b)=>String(b.serviceDate||'').localeCompare(String(a.serviceDate||'')))) {
+    const v = vehicles.find(v=>v.id===m.vehicleId);
+    const item = make('div','v5-item');
+    item.append(make('strong','',`${v?.name || m.vehicleName || 'Vehicle'} — ${m.type || 'Service'}`));
+    item.append(make('p','v5-muted',`Service: ${m.serviceDate || '—'} · Next due: ${m.nextDue || '—'} · Cost: ${money(m.cost)}`));
+    if (m.notes) item.append(make('p','',m.notes));
+    const del = make('button','','Delete record');
+    del.onclick = async () => { if (!confirm('Delete this maintenance record?')) return; del.disabled=true; try { await deleteDoc(doc(db,'vehicleMaintenance',m.id)); } catch(e) { $('v5MaintenanceMessage').textContent='Delete failed: '+e.message; del.disabled=false; } };
+    item.append(del); list.append(item);
+  }
+  if (!maintenance.length) list.append(make('p','v5-muted','No maintenance records yet.'));
+}
+$('v5MaintenanceDate').value = today();
+$('v5MaintenanceForm').addEventListener('submit', async e => {
+  e.preventDefault(); const btn=$('v5MaintenanceSave'); const v=vehicles.find(x=>x.id===$('v5MaintenanceVehicle').value);
+  const cost=Number($('v5MaintenanceCost').value);
+  if (!v || !Number.isFinite(cost) || cost<0) { $('v5MaintenanceMessage').textContent='Select a vehicle and enter a valid cost.'; return; }
+  btn.disabled=true; $('v5MaintenanceMessage').textContent='Saving…';
+  try {
+    await addDoc(collection(db,'vehicleMaintenance'),{
+      vehicleId:v.id, vehicleName:v.name, type:$('v5MaintenanceType').value.trim(),
+      serviceDate:$('v5MaintenanceDate').value, nextDue:$('v5MaintenanceDue').value,
+      cost, notes:$('v5MaintenanceNotes').value.trim(), createdAt:serverTimestamp()
+    });
+    $('v5MaintenanceForm').reset(); $('v5MaintenanceDate').value=today();
+    $('v5MaintenanceMessage').textContent='Maintenance record saved.';
+  } catch(err) { $('v5MaintenanceMessage').textContent='Save failed: '+err.message; }
+  finally { btn.disabled=false; }
+});
+
+onAuthStateChanged(auth,user => {
+  for (const unsubscribe of unsubscribers) unsubscribe(); unsubscribers=[];
+  bookings=[]; vehicles=[]; maintenance=[];
+  if (!user || user.uid !== ADMIN_UID) return;
+  unsubscribers.push(onSnapshot(collection(db,'bookingInquiries'), snap => {
+    bookings=snap.docs.map(d=>({id:d.id,...d.data()})); drawCalendar(); drawAnalytics();
+  }, e => { $('v5CalendarMessage').textContent='Booking sync error: '+e.message; }));
+  unsubscribers.push(onSnapshot(collection(db,'vehicles'), snap => {
+    vehicles=snap.docs.map(d=>({id:d.id,...d.data()})); drawVehicleOptions(); drawMaintenance();
+  }, e => { $('v5MaintenanceMessage').textContent='Vehicle sync error: '+e.message; }));
+  unsubscribers.push(onSnapshot(collection(db,'vehicleMaintenance'), snap => {
+    maintenance=snap.docs.map(d=>({id:d.id,...d.data()})); drawMaintenance();
+  }, e => { $('v5MaintenanceMessage').textContent='Maintenance sync error: '+e.message; }));
+});
