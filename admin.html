@@ -1,39 +1,129 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Z & Z Transport | Admin Dashboard</title>
-<style>
-:root{color-scheme:dark;--bg:#0b0c0f;--panel:#17181c;--line:#423727;--gold:#e9c375;--text:#f7f3e9;--muted:#aeb0b8;--green:#70d5a4;--red:#ff9999}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,Arial,sans-serif}header{background:#131317;border-bottom:1px solid var(--line);padding:20px 5%;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}h1{font-size:23px;margin:0;color:var(--gold)}h2{font-size:19px;margin:0 0 15px}small,.muted{color:var(--muted)}main{max-width:1250px;margin:auto;padding:25px 18px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:22px;margin-bottom:18px}.login{max-width:430px;margin:65px auto}.field{display:block;margin:13px 0 5px;color:var(--gold);font-weight:700;font-size:13px}input,select,button{font:inherit;border-radius:9px;padding:11px 13px}input,select{width:100%;background:#0d0e11;border:1px solid #62553d;color:var(--text)}button{border:1px solid #96743a;background:transparent;color:var(--gold);font-weight:700;cursor:pointer}button:hover{filter:brightness(1.15)}button.primary{background:linear-gradient(110deg,#cda450,#f0d28c);border:0;color:#19140b}button:disabled{opacity:.5;cursor:wait}.hide{display:none!important}.top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}.stat{background:#1b1a18;border:1px solid var(--line);border-radius:12px;padding:17px}.stat strong{font-size:30px;display:block;color:var(--gold)}.tools{display:grid;grid-template-columns:2fr 1fr auto;gap:10px;margin-bottom:17px}.list{display:grid;gap:13px}.booking{background:#111216;border:1px solid #51442f;border-radius:12px;padding:18px;overflow-wrap:anywhere}.booking-head{display:flex;align-items:start;justify-content:space-between;gap:10px;flex-wrap:wrap}.booking h3{margin:0 0 4px;font-size:18px}.pill{display:inline-block;border-radius:20px;border:1px solid #79613b;padding:3px 9px;color:var(--gold);font-size:12px;text-transform:capitalize}.details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:14px 0}.details div{font-size:13px}.details b{color:var(--muted)}.actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px}.actions select{max-width:180px}.note{color:var(--muted);font-size:13px}.message{min-height:22px;color:var(--gold)}a{color:var(--gold)}@media(max-width:650px){.stats{grid-template-columns:repeat(2,1fr)}.tools{grid-template-columns:1fr}.details{grid-template-columns:1fr}.actions select{max-width:none}}
-</style>
-</head>
-<body>
-<header><div><h1>Z & Z TRANSPORT SERVICES</h1><small>SECURE ADMIN DASHBOARD • V1</small></div><div><span id="adminEmail" class="muted"></span> <button id="logout" class="hide">Log out</button></div></header>
-<main>
-<section id="loginSection" class="panel login"><h2>Admin sign in</h2><p class="note">Use the Firebase Email/Password admin account you created for this project.</p><form id="loginForm"><label class="field" for="email">Email</label><input id="email" type="email" autocomplete="username" required><label class="field" for="password">Password</label><input id="password" type="password" autocomplete="current-password" required><p><button class="primary" type="submit" id="loginBtn">Sign in</button></p></form><p id="loginMsg" class="message" role="status"></p></section>
-<section id="dashboard" class="hide"><div class="top"><div><h2>Booking inquiries</h2><p class="note">Live updates from Firebase • Customer inquiries are not confirmed until approved.</p></div><button id="exportBtn">Export visible CSV</button></div>
-<div class="stats"><div class="stat">Total<strong id="total">0</strong></div><div class="stat">Pending<strong id="pending">0</strong></div><div class="stat">Confirmed<strong id="confirmed">0</strong></div><div class="stat">Completed<strong id="completed">0</strong></div></div>
-<div class="panel"><div class="tools"><input id="search" placeholder="Search customer, phone, vehicle, destination…" aria-label="Search bookings"><select id="filter" aria-label="Filter by status"><option value="all">All statuses</option><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="declined">Declined</option><option value="completed">Completed</option></select><button id="refresh">Refresh</button></div><p id="dashboardMsg" class="message" role="status"></p><div id="bookings" class="list"></div></div></section>
-</main>
-<script type="module">
-import {initializeApp} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js';
-import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
-import {getFirestore,collection,onSnapshot,doc,updateDoc} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
-const firebaseConfig={apiKey:'AIzaSyCRV7WVDn2hBT7p3pK4xlkV17SFeM0ErRU',authDomain:'zandztransport.firebaseapp.com',projectId:'zandztransport',storageBucket:'zandztransport.firebasestorage.app',messagingSenderId:'645011956358',appId:'1:645011956358:web:6ae9c285f4167586b22707'};
-// Firebase Authentication UID for the Z & Z admin account.
-const ADMIN_UID='cNsIX5hzu6bbKOZDUsXVrQmdgvy1';
-const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
-const $=id=>document.getElementById(id);let unsubscribe=null,records=[];
-const statuses=['pending','confirmed','declined','completed'];
-const fmtDate=value=>{if(!value)return '—';if(value.toDate)return value.toDate().toLocaleString('en-PH');return String(value)};
-const cell=(parent,label,value)=>{const el=document.createElement('div');const b=document.createElement('b');b.textContent=label+': ';el.append(b,document.createTextNode(value===null||value===undefined||value===''?'—':String(value)));parent.append(el)};
-function visible(){const q=$('search').value.trim().toLowerCase(),f=$('filter').value;return records.filter(r=>(f==='all'||r.status===f)&&[r.fullName,r.phone,r.vehicleName,r.service,r.pickupLocation,r.destination,r.pickupDate].some(v=>String(v||'').toLowerCase().includes(q)))}
-function render(){for(const s of ['pending','confirmed','completed'])$(s).textContent=records.filter(r=>r.status===s).length;$('total').textContent=records.length;const area=$('bookings');area.replaceChildren();const items=visible();if(!items.length){const p=document.createElement('p');p.className='note';p.textContent='No matching inquiries.';area.append(p);return}for(const r of items){const card=document.createElement('article');card.className='booking';const head=document.createElement('div');head.className='booking-head';const title=document.createElement('div');const h=document.createElement('h3');h.textContent=r.fullName||'Unnamed customer';const meta=document.createElement('small');meta.textContent='Submitted: '+fmtDate(r.createdAt);title.append(h,meta);const pill=document.createElement('span');pill.className='pill';pill.textContent=r.status||'unknown';head.append(title,pill);const details=document.createElement('div');details.className='details';for(const [label,value] of [['Phone',r.phone],['Vehicle',r.vehicleName],['Service',r.service],['Pickup date',r.pickupDate],['Return date',r.returnDate],['Pickup location',r.pickupLocation],['Destination',r.destination],['Passengers',r.passengers],['Notes',r.notes]])cell(details,label,value);const actions=document.createElement('div');actions.className='actions';const sel=document.createElement('select');sel.setAttribute('aria-label','Status for '+(r.fullName||'booking'));for(const s of statuses){const opt=document.createElement('option');opt.value=s;opt.textContent=s[0].toUpperCase()+s.slice(1);sel.append(opt)}sel.value=statuses.includes(r.status)?r.status:'pending';const save=document.createElement('button');save.className='primary';save.textContent='Save status';save.onclick=async()=>{save.disabled=true;save.textContent='Saving…';try{await updateDoc(doc(db,'bookingInquiries',r.id),{status:sel.value});$('dashboardMsg').textContent='Booking status updated.'}catch(err){$('dashboardMsg').textContent='Update failed: '+err.message}finally{save.disabled=false;save.textContent='Save status'}};actions.append(sel,save);if(r.phone){const copy=document.createElement('button');copy.textContent='Copy phone';copy.onclick=async()=>{try{await navigator.clipboard.writeText(String(r.phone));copy.textContent='Copied!'}catch{copy.textContent='Copy unavailable'}};actions.append(copy)}card.append(head,details,actions);area.append(card)}}
-function subscribe(){if(unsubscribe)unsubscribe();$('dashboardMsg').textContent='Loading bookings…';unsubscribe=onSnapshot(collection(db,'bookingInquiries'),snapshot=>{records=snapshot.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));$('dashboardMsg').textContent='Live sync connected • '+records.length+' inquiries';render()},err=>{$('dashboardMsg').textContent='Unable to read bookings: '+err.message})}
-onAuthStateChanged(auth,user=>{const admin=!!user&&user.uid===ADMIN_UID;$('loginSection').classList.toggle('hide',admin);$('dashboard').classList.toggle('hide',!admin);$('logout').classList.toggle('hide',!user);$('adminEmail').textContent=user?.email||'';if(!admin){if(unsubscribe){unsubscribe();unsubscribe=null}records=[];if(user){$('loginMsg').textContent='This account is not authorized as the Z & Z admin. Please sign out.'}}else subscribe()});
-$('loginForm').addEventListener('submit',async e=>{e.preventDefault();$('loginBtn').disabled=true;$('loginMsg').textContent='Signing in…';try{const result=await signInWithEmailAndPassword(auth,$('email').value.trim(),$('password').value);if(result.user.uid!==ADMIN_UID){$('loginMsg').textContent='Account is not authorized as admin.';await signOut(auth)}else $('loginMsg').textContent=''}catch(err){$('loginMsg').textContent='Login failed: '+err.message}finally{$('loginBtn').disabled=false}});
-$('logout').onclick=()=>signOut(auth);$('search').oninput=render;$('filter').onchange=render;$('refresh').onclick=subscribe;
-$('exportBtn').onclick=()=>{const fields=['fullName','phone','vehicleName','service','pickupDate','returnDate','pickupLocation','destination','passengers','notes','status'];const csv=[fields.join(','),...visible().map(r=>fields.map(k=>'"'+String(r[k]??'').replaceAll('"','""')+'"').join(','))].join('\r\n');const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='ZandZ-bookings.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
-</script>
-</body></html>
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   Z &amp; Z Transport | Admin Dashboard
+  </title>
+  <link href="admin-styles.css" rel="stylesheet"/>
+ </head>
+ <body>
+  <header>
+   <div>
+    <h1>
+     Z &amp; Z TRANSPORT SERVICES
+    </h1>
+    <small>
+     SECURE ADMIN DASHBOARD • V1
+    </small>
+   </div>
+   <div>
+    <span class="muted" id="adminEmail">
+    </span>
+    <button class="hide" id="logout">
+     Log out
+    </button>
+   </div>
+  </header>
+  <main>
+   <section class="panel login" id="loginSection">
+    <h2>
+     Admin sign in
+    </h2>
+    <p class="note">
+     Use the Firebase Email/Password admin account you created for this project.
+    </p>
+    <form id="loginForm">
+     <label class="field" for="email">
+      Email
+     </label>
+     <input autocomplete="username" id="email" required="" type="email"/>
+     <label class="field" for="password">
+      Password
+     </label>
+     <input autocomplete="current-password" id="password" required="" type="password"/>
+     <p>
+      <button class="primary" id="loginBtn" type="submit">
+       Sign in
+      </button>
+     </p>
+    </form>
+    <p class="message" id="loginMsg" role="status">
+    </p>
+   </section>
+   <section class="hide" id="dashboard">
+    <div class="top">
+     <div>
+      <h2>
+       Booking inquiries
+      </h2>
+      <p class="note">
+       Live updates from Firebase • Customer inquiries are not confirmed until approved.
+      </p>
+     </div>
+     <button id="exportBtn">
+      Export visible CSV
+     </button>
+    </div>
+    <div class="stats">
+     <div class="stat">
+      Total
+      <strong id="total">
+       0
+      </strong>
+     </div>
+     <div class="stat">
+      Pending
+      <strong id="pending">
+       0
+      </strong>
+     </div>
+     <div class="stat">
+      Confirmed
+      <strong id="confirmed">
+       0
+      </strong>
+     </div>
+     <div class="stat">
+      Completed
+      <strong id="completed">
+       0
+      </strong>
+     </div>
+    </div>
+    <div class="panel">
+     <div class="tools">
+      <input aria-label="Search bookings" id="search" placeholder="Search customer, phone, vehicle, destination…"/>
+      <select aria-label="Filter by status" id="filter">
+       <option value="all">
+        All statuses
+       </option>
+       <option value="pending">
+        Pending
+       </option>
+       <option value="confirmed">
+        Confirmed
+       </option>
+       <option value="declined">
+        Declined
+       </option>
+       <option value="completed">
+        Completed
+       </option>
+      </select>
+      <button id="refresh">
+       Refresh
+      </button>
+     </div>
+     <p class="message" id="dashboardMsg" role="status">
+     </p>
+     <div class="list" id="bookings">
+     </div>
+    </div>
+   </section>
+  </main>
+  <script src="admin.js" type="module">
+  </script>
+ </body>
+</html>
