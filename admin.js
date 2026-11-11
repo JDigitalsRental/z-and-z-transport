@@ -3,7 +3,11 @@ import { auth, db } from './firebase.js';
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
-  signOut
+  signOut,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
+  sendPasswordResetEmail
 } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
 
 import {
@@ -15,7 +19,8 @@ import {
   serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
 
-const ADMIN_UID = 'cNsIX5hzu6bbKOZDUsXVrQmdgvy1';
+const ADMIN_UIDS = new Set(['cNsIX5hzu6bbKOZDUsXVrQmdgvy1', '8JlxtbBhsDOnop9elLVDDI4zpTg1']);
+const isAdmin = user => !!user && ADMIN_UIDS.has(user.uid);
 const $ = id => document.getElementById(id);
 
 let unsubscribe = null;
@@ -315,7 +320,7 @@ $('vehicleForm').addEventListener('submit', async event => {
 $('vehicleCancelBtn').onclick = resetVehicleForm;
 
 onAuthStateChanged(auth, user => {
-  const admin = !!user && user.uid === ADMIN_UID;
+  const admin = !!user && isAdmin(user);
   $('loginSection').classList.toggle('hide', admin);
   $('dashboard').classList.toggle('hide', !admin);
   $('logout').classList.toggle('hide', !user);
@@ -341,7 +346,7 @@ $('loginForm').addEventListener('submit', async e => {
   $('loginMsg').textContent = 'Signing in…';
   try {
     const result = await signInWithEmailAndPassword(auth, $('email').value.trim(), $('password').value);
-    if (result.user.uid !== ADMIN_UID) {
+    if (!isAdmin(result.user)) {
       $('loginMsg').textContent = 'Account is not authorized as admin.';
       await signOut(auth);
     } else {
@@ -378,3 +383,72 @@ $('exportBtn').onclick = () => {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
+
+// V6 password controls: each admin can change only their own password.
+// Passwords never enter Firestore or localStorage.
+(function setupPasswordControls() {
+  const login = $('loginSection');
+  const dash = $('dashboard');
+  if (!login || !dash) return;
+  const resetBox = document.createElement('div');
+  resetBox.style.marginTop = '16px';
+  const resetBtn = document.createElement('button');
+  resetBtn.type = 'button'; resetBtn.textContent = 'Forgot password?';
+  const resetMsg = document.createElement('p');
+  resetMsg.setAttribute('role', 'status');
+  resetBtn.onclick = async () => {
+    const email = $('email')?.value.trim();
+    if (!email) { resetMsg.textContent = 'Enter your registered email first.'; return; }
+    resetBtn.disabled = true;
+    try {
+      await sendPasswordResetEmail(auth, email);
+      resetMsg.textContent = 'If this email is registered, a password reset message will be sent. Check your inbox and spam folder.';
+    } catch (err) {
+      resetMsg.textContent = 'Could not request reset: ' + err.message;
+    } finally { resetBtn.disabled = false; }
+  };
+  resetBox.append(resetBtn, resetMsg);
+  login.append(resetBox);
+
+  const box = document.createElement('section');
+  box.style.cssText = 'margin:24px auto;padding:20px;max-width:620px;border:1px solid #66502d;border-radius:12px;background:#151518;color:#f6e8c8';
+  const heading = document.createElement('h3'); heading.textContent = '🔐 Change My Password';
+  const info = document.createElement('p'); info.textContent = 'Change the password for your currently signed-in admin account only.';
+  const form = document.createElement('form');
+  form.style.cssText = 'display:grid;gap:12px';
+  function field(labelText, autocomplete) {
+    const label = document.createElement('label'); label.textContent = labelText;
+    label.style.cssText = 'display:grid;gap:5px';
+    const input = document.createElement('input');
+    input.type = 'password'; input.required = true; input.minLength = autocomplete === 'new-password' ? 8 : 1;
+    input.autocomplete = autocomplete;
+    input.style.cssText = 'width:100%;padding:12px;border:1px solid #77603a;border-radius:7px;background:#0e0e11;color:white;box-sizing:border-box';
+    label.append(input); form.append(label); return input;
+  }
+  const current = field('Current password', 'current-password');
+  const next = field('New password (minimum 8 characters)', 'new-password');
+  const confirm = field('Confirm new password', 'new-password');
+  const submit = document.createElement('button'); submit.type = 'submit';
+  submit.textContent = 'Change My Password'; submit.style.cssText = 'padding:12px;background:#dfb45e;color:#16120a;border:0;border-radius:7px;font-weight:bold;cursor:pointer';
+  const message = document.createElement('p'); message.setAttribute('role', 'status');
+  form.append(submit, message);
+  form.onsubmit = async event => {
+    event.preventDefault();
+    const user = auth.currentUser;
+    if (!isAdmin(user) || !user.email) { message.textContent = 'Sign in as an authorized admin first.'; return; }
+    if (next.value !== confirm.value) { message.textContent = 'New passwords do not match.'; return; }
+    if (next.value.length < 8) { message.textContent = 'Use at least 8 characters.'; return; }
+    if (current.value === next.value) { message.textContent = 'Choose a different new password.'; return; }
+    submit.disabled = true; message.textContent = 'Updating password…';
+    try {
+      const credential = EmailAuthProvider.credential(user.email, current.value);
+      await reauthenticateWithCredential(user, credential);
+      await updatePassword(user, next.value);
+      form.reset(); message.textContent = 'Password updated successfully.';
+    } catch (err) {
+      message.textContent = 'Password update failed: ' + err.message;
+    } finally { submit.disabled = false; }
+  };
+  box.append(heading, info, form);
+  dash.append(box);
+})();
