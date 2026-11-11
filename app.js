@@ -10,13 +10,13 @@ from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
 // DEMO ONLY: edit these examples here until Firebase admin management is configured.
 const VEHICLES=[
 {
-  id:'sedan',name:'Sedan / Car',emoji:'🚘',seats:4,self:1800,driver:2800,status:'available'
+  id:'sedan',name:'Sedan / Car',emoji:'🚘',image:'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=900&q=85',seats:4,self:1800,driver:2800,status:'available'
 },
 {
-  id:'suv',name:'SUV',emoji:'🚙',seats:7,self:3000,driver:4200,status:'available'
+  id:'suv',name:'SUV',emoji:'🚙',image:'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?auto=format&fit=crop&w=900&q=85',seats:7,self:3000,driver:4200,status:'available'
 },
 {
-  id:'van',name:'Van / MPV',emoji:'🚐',seats:10,self:4000,driver:5500,status:'available'
+  id:'van',name:'Van / MPV',emoji:'🚐',image:'https://images.unsplash.com/photo-1566933293069-b55c7f326dd4?auto=format&fit=crop&w=900&q=85',seats:10,self:4000,driver:5500,status:'available'
 }
 ];
 const $=id=>document.getElementById(id);
@@ -38,7 +38,20 @@ function renderFleet(){
     card.className='card vehicle';
     const visual=document.createElement('div');
     visual.className='vehicle-visual';
-    visual.textContent=v.emoji;
+    // Sample photo only. Replace with a verified photo of the actual rental vehicle later.
+    const photo=document.createElement('img');
+    photo.src=v.image;
+    photo.alt='Illustrative vehicle photo for '+v.name+' (not actual inventory)';
+    photo.loading='lazy';
+    photo.decoding='async';
+    photo.onerror=()=>{
+      photo.remove();
+      visual.textContent=v.emoji;
+      visual.style.fontSize='75px';
+      visual.style.display='grid';
+      visual.style.placeItems='center';
+    };
+    visual.append(photo);
     const body=document.createElement('div');
     body.className='vehicle-body';
     const tag=document.createElement('span');
