@@ -16,7 +16,8 @@ import {
   doc,
   updateDoc,
   addDoc,
-  serverTimestamp
+  serverTimestamp,
+  deleteDoc
 } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
 
 const ADMIN_UIDS = new Set(['cNsIX5hzu6bbKOZDUsXVrQmdgvy1', '8JlxtbBhsDOnop9elLVDDI4zpTg1']);
@@ -150,6 +151,27 @@ function render() {
       };
       actions.append(copy);
     }
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.textContent = 'Delete booking';
+    remove.setAttribute('aria-label', 'Delete booking for ' + (r.fullName || 'customer'));
+    remove.style.cssText = 'border:1px solid #b96565;color:#ffd4d4;background:#351b1b';
+    remove.onclick = async () => {
+      if (!isAdmin(auth.currentUser)) return;
+      const label = (r.fullName || 'Unnamed customer') + ' — ' + (r.vehicleName || 'Vehicle');
+      if (!window.confirm('Permanently delete this booking?\n\n' + label + '\n\nThis cannot be undone.')) return;
+      remove.disabled = true;
+      remove.textContent = 'Deleting…';
+      try {
+        await deleteDoc(doc(db, 'bookingInquiries', r.id));
+        $('dashboardMsg').textContent = 'Booking deleted successfully.';
+      } catch (err) {
+        $('dashboardMsg').textContent = 'Delete failed: ' + err.message;
+        remove.disabled = false;
+        remove.textContent = 'Delete booking';
+      }
+    };
+    actions.append(remove);
     card.append(head, details, actions);
     area.append(card);
   }
@@ -450,5 +472,6 @@ $('exportBtn').onclick = () => {
     } finally { submit.disabled = false; }
   };
   box.append(heading, info, form);
-  dash.append(box);
+  const settingsMount = $('v8PasswordMount');
+  (settingsMount || dash).append(box);
 })();
