@@ -10,54 +10,47 @@ import {
   collection,
   onSnapshot,
   doc,
-  updateDoc
+  updateDoc,
+  addDoc,
+  serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
 
-// Firebase Authentication UID for the Z & Z admin account.
 const ADMIN_UID = 'cNsIX5hzu6bbKOZDUsXVrQmdgvy1';
-
 const $ = id => document.getElementById(id);
+
 let unsubscribe = null;
+let unsubscribeVehicles = null;
 let records = [];
+let vehicles = [];
 
 const statuses = ['pending', 'confirmed', 'declined', 'completed'];
-
 const fmtDate = value => {
   if (!value) return '—';
   if (value.toDate) return value.toDate().toLocaleString('en-PH');
   return String(value);
 };
+const peso = value => '₱' + Number(value || 0).toLocaleString('en-PH');
 
-const cell = (parent, label, value) => {
+function cell(parent, label, value) {
   const el = document.createElement('div');
   const b = document.createElement('b');
   b.textContent = label + ': ';
   el.append(
     b,
     document.createTextNode(
-      value === null || value === undefined || value === ''
-        ? '—'
-        : String(value)
+      value === null || value === undefined || value === '' ? '—' : String(value)
     )
   );
   parent.append(el);
-};
+}
 
 function visible() {
   const q = $('search').value.trim().toLowerCase();
   const f = $('filter').value;
-
   return records.filter(r =>
     (f === 'all' || r.status === f) &&
-    [
-      r.fullName,
-      r.phone,
-      r.vehicleName,
-      r.service,
-      r.pickupLocation,
-      r.destination,
-      r.pickupDate
-    ].some(v => String(v || '').toLowerCase().includes(q))
+    [r.fullName, r.phone, r.vehicleName, r.service, r.pickupLocation, r.destination, r.pickupDate]
+      .some(v => String(v || '').toLowerCase().includes(q))
   );
 }
 
@@ -65,7 +58,6 @@ function render() {
   for (const s of ['pending', 'confirmed', 'completed']) {
     $(s).textContent = records.filter(r => r.status === s).length;
   }
-
   $('total').textContent = records.length;
   const area = $('bookings');
   area.replaceChildren();
@@ -82,23 +74,18 @@ function render() {
   for (const r of items) {
     const card = document.createElement('article');
     card.className = 'booking';
-
     const head = document.createElement('div');
     head.className = 'booking-head';
-
     const title = document.createElement('div');
     const h = document.createElement('h3');
     h.textContent = r.fullName || 'Unnamed customer';
-
     const meta = document.createElement('small');
     meta.textContent = 'Submitted: ' + fmtDate(r.createdAt);
     title.append(h, meta);
-
     const pill = document.createElement('span');
     pill.className = 'pill';
     pill.textContent = r.status || 'unknown';
     head.append(title, pill);
-
     const details = document.createElement('div');
     details.className = 'details';
 
@@ -118,31 +105,23 @@ function render() {
 
     const actions = document.createElement('div');
     actions.className = 'actions';
-
     const sel = document.createElement('select');
     sel.setAttribute('aria-label', 'Status for ' + (r.fullName || 'booking'));
-
     for (const s of statuses) {
       const opt = document.createElement('option');
       opt.value = s;
       opt.textContent = s[0].toUpperCase() + s.slice(1);
       sel.append(opt);
     }
-
     sel.value = statuses.includes(r.status) ? r.status : 'pending';
-
     const save = document.createElement('button');
     save.className = 'primary';
     save.textContent = 'Save status';
-
     save.onclick = async () => {
       save.disabled = true;
       save.textContent = 'Saving…';
-
       try {
-        await updateDoc(doc(db, 'bookingInquiries', r.id), {
-          status: sel.value
-        });
+        await updateDoc(doc(db, 'bookingInquiries', r.id), { status: sel.value });
         $('dashboardMsg').textContent = 'Booking status updated.';
       } catch (err) {
         $('dashboardMsg').textContent = 'Update failed: ' + err.message;
@@ -151,13 +130,11 @@ function render() {
         save.textContent = 'Save status';
       }
     };
-
     actions.append(sel, save);
 
     if (r.phone) {
       const copy = document.createElement('button');
       copy.textContent = 'Copy phone';
-
       copy.onclick = async () => {
         try {
           await navigator.clipboard.writeText(String(r.phone));
@@ -166,10 +143,8 @@ function render() {
           copy.textContent = 'Copy unavailable';
         }
       };
-
       actions.append(copy);
     }
-
     card.append(head, details, actions);
     area.append(card);
   }
@@ -178,48 +153,185 @@ function render() {
 function subscribe() {
   if (unsubscribe) unsubscribe();
   $('dashboardMsg').textContent = 'Loading bookings…';
-
   unsubscribe = onSnapshot(
     collection(db, 'bookingInquiries'),
     snapshot => {
       records = snapshot.docs
         .map(d => ({ id: d.id, ...d.data() }))
-        .sort((a, b) =>
-          (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
-        );
-
-      $('dashboardMsg').textContent =
-        'Live sync connected • ' + records.length + ' inquiries';
+        .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+      $('dashboardMsg').textContent = 'Live sync connected • ' + records.length + ' inquiries';
       render();
     },
+    err => { $('dashboardMsg').textContent = 'Unable to read bookings: ' + err.message; }
+  );
+}
+
+function resetVehicleForm() {
+  $('vehicleForm').reset();
+  $('editingVehicleId').value = '';
+  $('vehicleSaveBtn').textContent = 'Add vehicle';
+  $('vehicleMsg').textContent = '';
+}
+
+function fillVehicleForm(v) {
+  $('editingVehicleId').value = v.id;
+  $('vehicleName').value = v.name || '';
+  $('vehicleCategory').value = v.category || 'other';
+  $('vehicleSeats').value = v.seats ?? 4;
+  $('vehicleSelfPrice').value = v.self ?? 0;
+  $('vehicleDriverPrice').value = v.driver ?? 0;
+  $('vehicleStatus').value = v.status || 'available';
+  $('vehicleImage').value = v.image || '';
+  $('vehicleDescription').value = v.description || '';
+  $('vehicleVisible').checked = v.visible !== false;
+  $('vehicleSaveBtn').textContent = 'Save vehicle changes';
+  $('vehicleForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderVehicles() {
+  const list = $('vehicleList');
+  list.replaceChildren();
+  if (!vehicles.length) {
+    const p = document.createElement('p');
+    p.className = 'note';
+    p.textContent = 'No vehicles in Firestore yet. Add your first vehicle above.';
+    list.append(p);
+    return;
+  }
+  for (const v of vehicles) {
+    const card = document.createElement('article');
+    card.className = 'vehicle-admin-card';
+    if (v.image && /^https:\/\//i.test(v.image)) {
+      const img = document.createElement('img');
+      img.src = v.image;
+      img.alt = v.name || 'Vehicle';
+      img.loading = 'lazy';
+      img.referrerPolicy = 'no-referrer';
+      img.onerror = () => img.remove();
+      card.append(img);
+    }
+    const info = document.createElement('div');
+    info.className = 'info';
+    const h = document.createElement('h3');
+    h.textContent = v.name || 'Unnamed vehicle';
+    const details = document.createElement('p');
+    details.textContent = `${v.category || 'other'} • ${v.seats || '—'} seats • ${v.status || 'available'} • ${v.visible === false ? 'Hidden' : 'Visible'}`;
+    const prices = document.createElement('p');
+    prices.textContent = `Self-drive ${peso(v.self)} / With driver ${peso(v.driver)} per day`;
+    info.append(h, details, prices);
+    if (v.description) {
+      const desc = document.createElement('p');
+      desc.textContent = v.description;
+      info.append(desc);
+    }
+    const buttons = document.createElement('div');
+    buttons.className = 'buttons';
+    const edit = document.createElement('button');
+    edit.textContent = 'Edit';
+    edit.onclick = () => fillVehicleForm(v);
+    const toggle = document.createElement('button');
+    toggle.textContent = v.visible === false ? 'Show' : 'Hide';
+    toggle.onclick = async () => {
+      toggle.disabled = true;
+      try {
+        await updateDoc(doc(db, 'vehicles', v.id), {
+          visible: v.visible === false,
+          updatedAt: serverTimestamp()
+        });
+        $('vehicleMsg').textContent = 'Vehicle visibility updated.';
+      } catch (err) {
+        $('vehicleMsg').textContent = 'Update failed: ' + err.message;
+      } finally {
+        toggle.disabled = false;
+      }
+    };
+    buttons.append(edit, toggle);
+    card.append(info, buttons);
+    list.append(card);
+  }
+}
+
+function subscribeVehicles() {
+  if (unsubscribeVehicles) unsubscribeVehicles();
+  $('vehicleMsg').textContent = 'Loading vehicles…';
+  unsubscribeVehicles = onSnapshot(
+    collection(db, 'vehicles'),
+    snapshot => {
+      vehicles = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      $('vehicleMsg').textContent = 'Vehicle management connected • ' + vehicles.length + ' vehicles';
+      renderVehicles();
+    },
     err => {
-      $('dashboardMsg').textContent =
-        'Unable to read bookings: ' + err.message;
+      $('vehicleMsg').textContent = 'Unable to read vehicles: ' + err.message + '. Firestore rules may need updating.';
     }
   );
 }
 
+$('vehicleForm').addEventListener('submit', async event => {
+  event.preventDefault();
+  const image = $('vehicleImage').value.trim();
+  if (image && !/^https:\/\//i.test(image)) {
+    $('vehicleMsg').textContent = 'Photo URL must begin with https://';
+    return;
+  }
+  const payload = {
+    name: $('vehicleName').value.trim(),
+    category: $('vehicleCategory').value,
+    seats: Number($('vehicleSeats').value),
+    self: Number($('vehicleSelfPrice').value),
+    driver: Number($('vehicleDriverPrice').value),
+    status: $('vehicleStatus').value,
+    image,
+    description: $('vehicleDescription').value.trim(),
+    visible: $('vehicleVisible').checked,
+    updatedAt: serverTimestamp()
+  };
+  if (!payload.name || !Number.isInteger(payload.seats) || payload.seats < 1 ||
+      !Number.isFinite(payload.self) || payload.self < 0 ||
+      !Number.isFinite(payload.driver) || payload.driver < 0) {
+    $('vehicleMsg').textContent = 'Please enter valid vehicle details and prices.';
+    return;
+  }
+  const save = $('vehicleSaveBtn');
+  save.disabled = true;
+  $('vehicleMsg').textContent = 'Saving vehicle…';
+  try {
+    const id = $('editingVehicleId').value;
+    if (id) {
+      await updateDoc(doc(db, 'vehicles', id), payload);
+    } else {
+      await addDoc(collection(db, 'vehicles'), { ...payload, createdAt: serverTimestamp() });
+    }
+    resetVehicleForm();
+    $('vehicleMsg').textContent = id ? 'Vehicle updated successfully.' : 'Vehicle added successfully.';
+  } catch (err) {
+    $('vehicleMsg').textContent = 'Could not save vehicle: ' + err.message;
+  } finally {
+    save.disabled = false;
+  }
+});
+
+$('vehicleCancelBtn').onclick = resetVehicleForm;
+
 onAuthStateChanged(auth, user => {
   const admin = !!user && user.uid === ADMIN_UID;
-
   $('loginSection').classList.toggle('hide', admin);
   $('dashboard').classList.toggle('hide', !admin);
   $('logout').classList.toggle('hide', !user);
   $('adminEmail').textContent = user?.email || '';
 
   if (!admin) {
-    if (unsubscribe) {
-      unsubscribe();
-      unsubscribe = null;
-    }
-
+    if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+    if (unsubscribeVehicles) { unsubscribeVehicles(); unsubscribeVehicles = null; }
     records = [];
+    vehicles = [];
     if (user) {
-      $('loginMsg').textContent =
-        'This account is not authorized as the Z & Z admin. Please sign out.';
+      $('loginMsg').textContent = 'This account is not authorized as the Z & Z admin. Please sign out.';
     }
   } else {
     subscribe();
+    subscribeVehicles();
   }
 });
 
@@ -227,14 +339,8 @@ $('loginForm').addEventListener('submit', async e => {
   e.preventDefault();
   $('loginBtn').disabled = true;
   $('loginMsg').textContent = 'Signing in…';
-
   try {
-    const result = await signInWithEmailAndPassword(
-      auth,
-      $('email').value.trim(),
-      $('password').value
-    );
-
+    const result = await signInWithEmailAndPassword(auth, $('email').value.trim(), $('password').value);
     if (result.user.uid !== ADMIN_UID) {
       $('loginMsg').textContent = 'Account is not authorized as admin.';
       await signOut(auth);
@@ -255,31 +361,16 @@ $('refresh').onclick = subscribe;
 
 $('exportBtn').onclick = () => {
   const fields = [
-    'fullName',
-    'phone',
-    'vehicleName',
-    'service',
-    'pickupDate',
-    'returnDate',
-    'pickupLocation',
-    'destination',
-    'passengers',
-    'notes',
-    'status'
+    'fullName', 'phone', 'vehicleName', 'service', 'pickupDate', 'returnDate',
+    'pickupLocation', 'destination', 'passengers', 'notes', 'status'
   ];
-
   const csv = [
     fields.join(','),
-    ...visible().map(r =>
-      fields.map(k =>
-        '"' + String(r[k] ?? '').replaceAll('"', '""') + '"'
-      ).join(',')
-    )
+    ...visible().map(r => fields.map(k =>
+      '"' + String(r[k] ?? '').replaceAll('"', '""') + '"'
+    ).join(','))
   ].join('\r\n');
-
-  const blob = new Blob(['\ufeff' + csv], {
-    type: 'text/csv;charset=utf-8'
-  });
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
