@@ -7,7 +7,7 @@
    Z &amp; Z Transport Services | Car Rental &amp; Transport
   </title>
   <meta content="Z &amp; Z Transport Services — self-drive rentals, with-driver trips, and transport inquiries." name="description"/>
-  <link href="styles.css" rel="stylesheet"/>
+  <link href="styles.css?v=3" rel="stylesheet"/>
  </head>
  <body>
   <header class="header">
@@ -68,17 +68,17 @@
        All inquiries are subject to vehicle availability and confirmation.
       </p>
      </div>
-     <div class="hero-card">
-      <div aria-hidden="true" class="hero-car">
-       🚘
+     <div class="hero-card" aria-label="Featured Toyota Innova vehicle photo">
+        <div class="hero-photo">
+          <img src="assets/toyota-innova.jpg" alt="Illustrative Toyota Innova vehicle photo" loading="eager" decoding="async"/>
+        </div>
+        <div class="hero-card-content">
+          <span class="hero-kicker">PREMIUM TRANSPORT OPTIONS</span>
+          <strong>Z &amp; Z TRANSPORT</strong>
+          <p>Comfort for every journey.</p>
+          <a class="hero-card-link" href="#fleet">DISCOVER OUR FLEET ↗</a>
+        </div>
       </div>
-      <strong>
-       Z &amp; Z TRANSPORT
-      </strong>
-      <p>
-       Drive your plans forward.
-      </p>
-     </div>
     </div>
    </section>
    <section class="section" id="services">
@@ -150,14 +150,14 @@
        Our Fleet
       </h2>
       <p>
-       Sample vehicle categories and illustrative rates while the official fleet is being finalized.
+       Explore vehicles listed by our team. Rates and availability are subject to final confirmation.
       </p>
      </div>
      <div class="note">
-      ⚠️ DEMO VEHICLES &amp; PRICES ONLY. These are examples, not confirmed inventory, availability, or official quotations. Real vehicle photos and rates will be added later.
+      Vehicle listings and indicative daily rates are maintained by our team. Please request a quotation to confirm your dates, total price, and rental terms.
      </div>
      <div class="fleet-tools">
-      <input aria-label="Search vehicles" class="search" id="vehicleSearch" placeholder="Search vehicle category..."/>
+      <input aria-label="Search vehicles" class="search" id="vehicleSearch" placeholder="Search Toyota Vios, Innova, or vehicle type..."/>
       <select aria-label="Filter vehicle availability" class="filter" id="vehicleFilter">
        <option value="all">
         All statuses
@@ -176,7 +176,7 @@
      <div class="grid" id="fleetGrid">
      </div>
      <p class="tiny muted" style="margin-top:18px">
-      Availability shown here is illustrative only until connected to the secure management system.
+      Vehicle status is updated by our team. Availability for your specific dates is confirmed after inquiry.
      </p>
     </div>
    </section>
@@ -256,7 +256,7 @@
        </div>
        <div class="field">
         <label for="vehicle">
-         VEHICLE CATEGORY *
+         SELECT VEHICLE *
         </label>
         <select id="vehicle" required="">
         </select>
@@ -359,7 +359,7 @@
        Are the listed prices final?
       </summary>
       <p>
-       No. Current rates are samples only. The team will provide a confirmed quotation based on the vehicle, dates, service, and route.
+       Displayed daily rates are indicative. Our team will confirm the final quotation based on the vehicle, rental dates, service, route, and any applicable requirements.
       </p>
      </details>
      <details>
@@ -367,7 +367,7 @@
        Can I book a vehicle directly on the website?
       </summary>
       <p>
-       Not yet. This website prepares an inquiry for you to send through our official Facebook page. Bookings require team confirmation.
+       You can submit an inquiry through the website and send the prepared message through our Facebook page. A booking is only confirmed after our team verifies availability and terms.
       </p>
      </details>
      <details>
@@ -380,10 +380,10 @@
      </details>
      <details>
       <summary>
-       When will actual vehicle photos be available?
+       Are the vehicle photos of the exact rental unit?
       </summary>
       <p>
-       Real fleet photos and confirmed vehicle information will be added after the team approves them.
+       Vehicle photos may be illustrative. Please confirm the exact unit, features, and condition with our team before booking.
       </p>
      </details>
     </div>
