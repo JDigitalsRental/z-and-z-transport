@@ -745,3 +745,212 @@ body {
         transition: none;
     }
 }
+
+/* =============================================================
+   Z & Z TRANSPORT SERVICES — WEBSITE POLISH V3
+   Presentation-only refinements; no changes to Firebase or forms.
+   ============================================================= */
+
+:root {
+    --gold: #e7bd65;
+}
+
+.hero-grid {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+    gap: 48px;
+}
+
+.hero-card {
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+    min-height: 355px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    text-align: left;
+    border-radius: 22px;
+    background: #101216;
+}
+
+.hero-photo {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(145deg, #2d2921, #0c0e11);
+}
+
+.hero-photo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.hero-photo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(5,6,8,.02) 12%, rgba(5,6,8,.22) 42%, rgba(5,6,8,.94) 100%);
+}
+
+.hero-card-content {
+    position: relative;
+    z-index: 1;
+    padding: 105px 27px 28px;
+}
+
+.hero-kicker {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--gold2);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .19em;
+}
+
+.hero-card strong {
+    font-size: 18px;
+    letter-spacing: .12em;
+}
+
+.hero-card p {
+    color: #e3e0d9;
+    margin: 5px 0 16px;
+}
+
+.hero-card-link {
+    display: inline-block;
+    color: var(--gold2);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .1em;
+    border-bottom: 1px solid rgba(231,189,101,.55);
+    padding-bottom: 5px;
+}
+
+#fleet .section-head {
+    max-width: 700px;
+    margin: 0 auto 28px;
+}
+
+#fleet .note {
+    max-width: 920px;
+    margin: 0 auto 22px;
+    background: rgba(231,189,101,.065);
+    color: #e9ddc5;
+    border-color: rgba(231,189,101,.24);
+}
+
+#fleet .fleet-tools {
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+#fleet .search {
+    flex: 1 1 310px;
+}
+
+#fleet .filter {
+    flex: 0 1 225px;
+}
+
+#fleetGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 22px;
+}
+
+#fleetGrid .vehicle {
+    display: flex;
+    flex-direction: column;
+    border-radius: 17px;
+    overflow: hidden;
+    background: #101115;
+}
+
+#fleetGrid .vehicle-visual {
+    height: 215px;
+    background: linear-gradient(140deg, #3a3025, #13161a);
+}
+
+#fleetGrid .vehicle-visual img {
+    object-fit: contain;
+    background: #eeeae4;
+}
+
+#fleetGrid .vehicle-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 22px 22px;
+}
+
+#fleetGrid .vehicle h3 {
+    margin: 15px 0 8px;
+    font: 700 24px/1.18 Georgia, serif;
+    color: #fff8eb;
+}
+
+#fleetGrid .vehicle .price {
+    margin-top: auto;
+    padding-top: 20px;
+    font-size: 24px;
+}
+
+#fleetGrid .vehicle .subprice {
+    line-height: 1.6;
+    margin-top: 4px;
+    margin-bottom: 18px;
+}
+
+#fleetGrid .vehicle .btn {
+    min-height: 46px;
+}
+
+#fleetGrid .status {
+    letter-spacing: .025em;
+}
+
+#booking .form-card,
+#services .card,
+#why .card {
+    border-radius: 18px;
+}
+
+@media (max-width: 900px) {
+    #fleetGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 800px) {
+    .hero-grid {
+        grid-template-columns: 1fr;
+    }
+    .hero-card {
+        min-height: 300px;
+    }
+}
+
+@media (max-width: 560px) {
+    #fleetGrid {
+        grid-template-columns: 1fr;
+    }
+    #fleet .filter {
+        flex: 1 1 100%;
+    }
+    .hero-card {
+        min-height: 270px;
+    }
+    .hero-card-content {
+        padding: 85px 22px 22px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #fleetGrid .vehicle,
+    #fleetGrid .vehicle-visual img {
+        transition: none;
+    }
+}
