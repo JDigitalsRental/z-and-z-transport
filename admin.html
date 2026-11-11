@@ -67,7 +67,7 @@
 <p class="message" id="loginMsg" role="status"></p>
 </section>
 <section class="hide" id="dashboard">
-<nav aria-label="Admin dashboard sections" class="v5-tabs" id="v5Tabs"><button aria-selected="true" data-v5-tab="bookings" type="button">Bookings</button><button data-v5-tab="calendar" type="button">Calendar</button><button data-v5-tab="analytics" type="button">Analytics</button><button data-v5-tab="maintenance" type="button">Maintenance</button><button data-v5-tab="vehicles" type="button">Vehicles</button></nav><div class="v5-view" data-v5-view="bookings" id="v5Bookings"><div class="top">
+<nav aria-label="Admin dashboard sections" class="v5-tabs" id="v5Tabs"><button aria-selected="true" data-v5-tab="bookings" type="button">Bookings</button><button data-v5-tab="calendar" type="button">Calendar</button><button data-v5-tab="analytics" type="button">Analytics</button><button data-v5-tab="maintenance" type="button">Maintenance</button><button data-v5-tab="vehicles" type="button">Vehicles</button><button data-v5-tab="fleet" type="button">Fleet Units</button></nav><div class="v5-view" data-v5-view="bookings" id="v5Bookings"><div class="top">
 <div>
 <h2>Booking inquiries</h2>
 <p class="note">Live updates from Firebase • Customer inquiries are not confirmed until approved.</p>
@@ -165,8 +165,16 @@
 <label class="v5-field">Notes<textarea id="v5MaintenanceNotes" maxlength="500"></textarea></label>
 </div><div class="v5-actions"><button class="primary" id="v5MaintenanceSave" type="submit">Save maintenance record</button></div></form>
 <p class="message" id="v5MaintenanceMessage" role="status"></p><div class="v5-list" id="v5MaintenanceList"></div>
+</section>
+<section class="panel v5-view" data-v5-view="fleet" hidden id="v7FleetView">
+<h2>Fleet Units — V7 Phase 1</h2>
+<p class="note">Manage six individual physical units. This first phase tracks inventory and manual unit status only; it does not assign bookings or prevent overlapping bookings yet.</p>
+<p class="note">Vehicle plate number and color are shared with customers directly through the official Facebook Page after booking confirmation.</p>
+<p id="v7Count" class="note"></p><p id="v7Message" class="message" role="status"></p>
+<div class="v5-list" id="v7Units"></div>
 </section></section>
 </main>
 <script src="admin.js?v=2" type="module"></script>
-<script src="admin-v5.js?v=5" type="module"></script></body>
+<script src="admin-v5.js?v=6" type="module"></script>
+<script src="admin-v7.js?v=1" type="module"></script></body>
 </html>
