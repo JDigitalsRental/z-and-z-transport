@@ -954,3 +954,36 @@ body {
         transition: none;
     }
 }
+/* ===========================================================
+   V8 EXECUTIVE BLACK & GOLD — unified premium visual layer
+   Retains all legacy selectors for Firebase-rendered elements.
+   =========================================================== */
+:root{--bg:#08090b;--panel:#111317;--panel2:#18191d;--gold:#dfb66b;--gold2:#f5dca6;--text:#f7f2e9;--muted:#b9b7b1;--line:#3b3429}
+body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;letter-spacing:.005em;overflow-x:hidden}
+.wrap{max-width:1240px;padding-inline:clamp(18px,4vw,52px)}
+.header{background:rgba(8,9,11,.91);border-bottom:1px solid rgba(223,182,107,.18)}
+.nav{min-height:82px}.brand{letter-spacing:.075em}.brand-mark{border-radius:8px}
+.navlinks{gap:28px}.navlinks>a:not(.btn){transition:color .2s ease}
+.btn{border-radius:7px;letter-spacing:.07em;font-size:12px;min-height:46px;transition:transform .2s ease,box-shadow .2s ease,background .2s ease}
+.btn.primary{background:linear-gradient(125deg,#b98b43 0%,#e6c47e 52%,#f6dba4 100%);box-shadow:0 8px 28px rgba(198,145,59,.15)}
+.btn:hover{transform:translateY(-2px)}.btn:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #f5dca6;outline-offset:3px}
+.hero{background:#090a0c}.hero::before{background-image:linear-gradient(90deg,rgba(5,6,8,.96) 0%,rgba(5,6,8,.88) 35%,rgba(5,6,8,.45) 100%),url('https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=1800&q=85')}
+.hero-grid{min-height:660px;gap:clamp(30px,5vw,76px);padding-block:100px}
+.hero h1{font-size:clamp(42px,5.7vw,78px);line-height:1.09;letter-spacing:-.035em;max-width:760px}
+.hero .lead{font-size:clamp(15px,1.5vw,18px);line-height:1.85;max-width:550px;color:#d1cdc6}
+.hero .eyebrow{display:inline-flex;align-items:center;gap:12px}.hero .eyebrow:before{content:'';display:inline-block;width:30px;height:1px;background:var(--gold)}
+.hero-actions{margin-top:34px}.hero-card.zz-logo-card{max-width:410px;background:linear-gradient(145deg,rgba(31,25,18,.93),rgba(7,9,12,.93));border:1px solid rgba(223,182,107,.45);box-shadow:0 30px 90px rgba(0,0,0,.55)}
+.zz-logo-card .zz-logo-image{filter:drop-shadow(0 10px 25px rgba(0,0,0,.25))}
+.section{padding-block:clamp(65px,7vw,105px)}.section-head{margin-bottom:40px}.section-head h2{letter-spacing:-.025em}.section-head p{max-width:660px;margin-inline:auto}
+#services .card,#why .card{padding:clamp(22px,3vw,34px);background:linear-gradient(155deg,rgba(28,29,32,.94),rgba(12,14,17,.96));border:1px solid rgba(223,182,107,.19);border-radius:12px}
+#services .card>div:first-child{font-size:31px!important}#services .card h3,#why .card h3{font-family:Georgia,serif;font-size:22px;color:#f3dfb8}
+#fleet{background:#0e1013}#fleet .note{border-radius:8px}#fleetGrid{gap:24px}#fleetGrid .vehicle{border-radius:12px;border:1px solid rgba(223,182,107,.28);background:#111216;box-shadow:0 20px 44px rgba(0,0,0,.24)}
+#fleetGrid .vehicle-visual{height:230px}#fleetGrid .vehicle-body{padding:26px 24px}#fleetGrid .vehicle h3{font-size:25px}#fleetGrid .vehicle .btn{margin-top:8px}
+#fleetGrid .vehicle-visual img{object-fit:contain}#fleetGrid .vehicle .price{font-family:Georgia,serif;font-size:28px}
+#booking{background:radial-gradient(ellipse at 5% 10%,rgba(126,89,41,.13),transparent 50%),#0d0e11}#booking .form-card{background:linear-gradient(150deg,#191a1d,#101114);border-radius:14px;padding:clamp(20px,3vw,38px)}
+#booking .field label{letter-spacing:.09em}#booking input,#booking select,#booking textarea{background:#0b0d10;border-color:#4a4031;min-height:46px}#booking input:focus,#booking select:focus,#booking textarea:focus{box-shadow:0 0 0 3px rgba(223,182,107,.12)}
+#zzV5Calculator{border-radius:10px!important;background:#1d1a15!important;border-color:#8b6b35!important}#faq .faq details,.faq details{border-radius:9px;background:#141518}.faq summary{padding-right:18px}
+.footer{padding-block:55px;background:#07080a}.footer strong{font-family:Georgia,serif;letter-spacing:.12em}
+@media(max-width:900px){.hero-grid{grid-template-columns:1fr;min-height:auto;padding-block:72px}.hero-card.zz-logo-card{justify-self:center;max-width:390px}.booking-layout{grid-template-columns:1fr}#fleetGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.nav{min-height:70px}.brand{font-size:11px}.hero-grid{padding-block:62px}.hero h1{font-size:clamp(39px,10vw,52px)}.hero .lead{font-size:15px}.hero-actions .btn{flex:1 1 100%}.section{padding-block:62px}#fleetGrid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.hero-card.zz-logo-card{width:100%}.section-head h2{font-size:34px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation:none!important}}
