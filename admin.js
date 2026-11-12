@@ -17,7 +17,9 @@ import {
   updateDoc,
   addDoc,
   serverTimestamp,
-  deleteDoc
+  deleteDoc,
+  getDoc,
+  setDoc
 } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
 
 const ADMIN_UIDS = new Set(['cNsIX5hzu6bbKOZDUsXVrQmdgvy1', '8JlxtbBhsDOnop9elLVDDI4zpTg1']);
@@ -474,4 +476,40 @@ $('exportBtn').onclick = () => {
   box.append(heading, info, form);
   const settingsMount = $('v8PasswordMount');
   (settingsMount || dash).append(box);
+})();
+
+// V9 — Public contact details: admin-only writes; public reads require Firestore rule.
+(function initV9Contacts(){
+  const form = $('v9ContactForm');
+  if (!form) return;
+  const fields = {primary:'v9Primary',secondary:'v9Secondary',whatsapp:'v9WhatsApp',viber:'v9Viber',kakao:'v9Kakao',wechat:'v9WeChat',kakaoUrl:'v9KakaoUrl',wechatUrl:'v9WeChatUrl',facebook:'v9Facebook'};
+  const ref = doc(db,'publicSettings','contact');
+  const msg = $('v9ContactMsg');
+  const phone = value => /^\+?[0-9 ()-]{7,35}$/.test(value);
+  const safeUrl = value => !value || /^https:\/\/[^\s]+$/i.test(value);
+  let initialized = false;
+  onAuthStateChanged(auth, async user => {
+    if (!isAdmin(user)) { initialized = false; form.reset(); return; }
+    if (initialized) return;
+    initialized = true;
+    try {
+      const snapshot = await getDoc(ref);
+      const data = snapshot.exists() ? snapshot.data() : {primary:'+639300257981',secondary:'+639632230190',whatsapp:'+639300257981',viber:'+639300257981',facebook:'https://www.facebook.com/profile.php?id=100065128595546'};
+      for (const [key,id] of Object.entries(fields)) $(id).value = data[key] || '';
+      msg.textContent = snapshot.exists() ? 'Contact settings loaded.' : 'Default contacts loaded. Click Save to publish them.';
+    } catch(err) { initialized = false; msg.textContent = 'Unable to load settings: '+err.message; }
+  });
+  form.addEventListener('submit',async event => {
+    event.preventDefault();
+    if (!isAdmin(auth.currentUser)) return;
+    const data = Object.fromEntries(Object.entries(fields).map(([key,id])=>[key,$(id).value.trim()]));
+    if (!phone(data.primary) || (data.secondary && !phone(data.secondary)) || (data.whatsapp && !phone(data.whatsapp)) || (data.viber && !phone(data.viber))) {
+      msg.textContent = 'Use valid phone numbers (international +63 format recommended).'; return;
+    }
+    if (![data.facebook,data.kakaoUrl,data.wechatUrl].every(safeUrl)) { msg.textContent = 'Links must start with https://'; return; }
+    const btn=$('v9ContactSave'); btn.disabled=true; msg.textContent='Saving…';
+    try { await setDoc(ref,{...data,updatedAt:serverTimestamp()}); msg.textContent='✓ Contact settings saved. Customer site updates automatically.'; }
+    catch(err){msg.textContent='Save failed: '+err.message+' — check Firestore rules.';}
+    finally{btn.disabled=false;}
+  });
 })();
