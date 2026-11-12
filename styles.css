@@ -1024,3 +1024,101 @@ body{background:#08090b}
 @media(max-width:600px){.zz-destination-grid{grid-template-columns:1fr 1fr;gap:10px}.zz-destination{min-height:240px}.zz-destination>div{padding:15px}.zz-destination h3{font-size:22px}.zz-destination p{font-size:12px}.zz-destination a{font-size:10px}.zz-trust-strip span{font-size:9px}#v9PublicContacts{grid-template-columns:1fr}}
 @media(max-width:380px){.zz-destination-grid{grid-template-columns:1fr}.zz-destination{min-height:230px}}
 @media(prefers-reduced-motion:reduce){.zz-destination,.zz-destination::before{transition:none}}
+
+/* =============================================================
+   Z & Z — V11 SCENIC SERVICES SECTION
+   Visual-only upgrade. No HTML, JavaScript or Firebase changes.
+   ============================================================= */
+#services {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: #0c1114;
+}
+#services::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background-image:
+    linear-gradient(180deg, rgba(5,9,13,.45) 0%, rgba(5,9,13,.36) 30%, rgba(5,8,11,.75) 72%, rgba(5,8,11,.9) 100%),
+    url("https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=2000&q=85");
+  background-position: center 54%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  filter: saturate(1.12);
+}
+#services::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 16%, rgba(255,193,102,.12), transparent 55%);
+}
+#services .section-head { position:relative; z-index:1; margin-bottom:44px; }
+#services .section-head .eyebrow { color:#ffe0a0; text-shadow:0 2px 12px #000b; }
+#services .section-head h2 { color:#fffaf1; text-shadow:0 4px 24px #000b; }
+#services .section-head p { color:#f0e9dc; text-shadow:0 2px 12px #000d; }
+#services .grid { position:relative; z-index:1; gap:20px; align-items:stretch; }
+#services .card {
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  min-height:330px;
+  padding:30px;
+  overflow:hidden;
+  background:linear-gradient(160deg,rgba(28,30,32,.95),rgba(9,11,14,.96));
+  border:1px solid rgba(232,196,127,.48);
+  border-radius:18px;
+  box-shadow:0 20px 45px rgba(0,0,0,.46),inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+#services .card::before {
+  content:"";
+  position:absolute;
+  left:0; right:0; top:0;
+  height:3px;
+  background:linear-gradient(90deg,transparent,#f0c66e,transparent);
+  opacity:.78;
+}
+#services .card > div:first-child {
+  display:grid;
+  place-items:center;
+  width:54px;
+  height:54px;
+  margin-bottom:16px;
+  border:1px solid rgba(232,196,127,.45);
+  border-radius:13px;
+  background:rgba(232,196,127,.09);
+  color:#f3c66f;
+  font-size:29px!important;
+}
+#services .card h3 { font:700 clamp(22px,2.1vw,27px)/1.2 Georgia,serif; color:#ffe0a0; margin:4px 0 13px; }
+#services .card p { color:#e0ddd5; line-height:1.75; font-size:14px; }
+#services .card .btn { align-self:flex-start; margin-top:auto; min-height:44px; }
+#services .card:hover {
+  transform:translateY(-6px);
+  border-color:#f2cc80;
+  box-shadow:0 25px 60px rgba(0,0,0,.58),0 0 22px rgba(232,196,127,.12);
+}
+@media (max-width:800px) {
+  #services::before { background-position: center; }
+  #services .grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  #services .card { min-height:320px; padding:24px; }
+}
+@media (max-width:600px) {
+  #services::before {
+    background-image:
+      linear-gradient(180deg,rgba(5,9,13,.45),rgba(5,9,13,.78) 42%,rgba(5,8,11,.92)),
+      url("https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=900&q=80");
+  }
+  #services .grid { grid-template-columns:1fr; gap:16px; }
+  #services .card { min-height:245px; padding:24px; }
+  #services .section-head { margin-bottom:28px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  #services .card { transition:none; }
+  #services .card:hover { transform:none; }
+}
