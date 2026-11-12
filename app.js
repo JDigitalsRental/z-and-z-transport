@@ -417,7 +417,7 @@ window.addEventListener('zz-inquiry-ready', async ({ detail }) => {
 (function initV9PublicContacts(){
   const target=document.getElementById('v9PublicContacts');
   if (!target) return;
-  const defaults={primary:'+639300257981',secondary:'+639632230190',whatsapp:'+639300257981',viber:'+639300257981',facebook:'https://www.facebook.com/profile.php?id=100065128595546'};
+  const defaults={primary:'',secondary:'',whatsapp:'',viber:'',kakao:'',wechat:'',facebook:'https://www.facebook.com/profile.php?id=100065128595546'};
   function render(data){
     target.replaceChildren();
     const add=(label,detail,href)=>{
@@ -435,8 +435,8 @@ window.addEventListener('zz-inquiry-ready', async ({ detail }) => {
     const safeUrl=s=>/^https:\/\/[^\s]+$/i.test(s||'')?s:null;
     add('WhatsApp',data.whatsapp||data.primary,data.whatsapp||data.primary?'https://wa.me/'+phone(data.whatsapp||data.primary):null);
     add('Viber',data.viber||data.primary,data.viber||data.primary?'viber://chat?number=%2B'+phone(data.viber||data.primary):null);
-    add('KakaoTalk',data.kakao||'Contact us for our KakaoTalk QR code',safeUrl(data.kakaoUrl));
-    add('WeChat',data.wechat||'Contact us for our WeChat QR code',safeUrl(data.wechatUrl));
+    if (data.kakao || safeUrl(data.kakaoUrl)) add('KakaoTalk',data.kakao || 'Open KakaoTalk',safeUrl(data.kakaoUrl));
+    if (data.wechat || safeUrl(data.wechatUrl)) add('WeChat',data.wechat || 'Open WeChat',safeUrl(data.wechatUrl));
     add('Facebook', 'Official Facebook Page',safeUrl(data.facebook));
     add('Phone',data.primary,data.primary?'tel:+'+phone(data.primary):null);
     if(data.secondary) add('Alternate Phone',data.secondary,'tel:+'+phone(data.secondary));
