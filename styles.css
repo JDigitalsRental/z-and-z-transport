@@ -1122,3 +1122,45 @@ body{background:#08090b}
   #services .card { transition:none; }
   #services .card:hover { transform:none; }
 }
+
+/* ==========================================================
+   V12 — ONE CONTINUOUS HERO PHOTO THROUGH THE ENTIRE PAGE
+   Reuses the exact photo URL from the existing hero.
+   Only visual backgrounds change; booking behavior untouched.
+   ========================================================== */
+html { background: #090a0d; }
+body {
+  background-color: #090a0d;
+  background-image:
+    linear-gradient(180deg,rgba(5,7,10,.77),rgba(5,7,10,.82)),
+    url("https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=1800&q=85");
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+/* Transparent section surfaces expose the same body photo. */
+.hero, #services, #fleet, #destinations, #why, #contact, #faq,
+section, main, footer, .footer {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+/* Disable competing photos and overlays within the sections. */
+.hero::before, #services::before, #services::after, #fleet::before,
+#destinations::before, #why::before, #contact::before, #faq::before {
+  background: none !important;
+  box-shadow: none !important;
+}
+/* Preserve readable premium cards and the navigation. */
+#services .card, #why .card, .vehicle, #contact .card,
+#faq .card, .hero-card {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+@media (max-width: 800px) {
+  body {
+    background-attachment: scroll;
+    background-size: auto 100%;
+    background-position: center top;
+  }
+}
