@@ -46,7 +46,7 @@
 <header>
 <div>
 <h1>Z &amp; Z TRANSPORT SERVICES</h1>
-<small>SECURE ADMIN DASHBOARD • V5</small>
+<small>SECURE ADMIN DASHBOARD • V9</small>
 </div>
 <div>
 <span class="muted" id="adminEmail"></span>
@@ -172,9 +172,27 @@
 <p class="note">Vehicle plate number and color are shared with customers directly through the official Facebook Page after booking confirmation.</p>
 <p id="v7Count" class="note"></p><p id="v7Message" class="message" role="status"></p>
 <div class="v5-list" id="v7Units"></div>
-</section><section class="panel v5-view" data-v5-view="settings" id="v8SettingsView" hidden><h2>Account Settings</h2><p class="note">Manage the password for your currently signed-in admin account.</p><div id="v8PasswordMount"></div></section></section>
+</section><section class="panel v5-view" data-v5-view="settings" id="v8SettingsView" hidden><h2>Account Settings</h2><p class="note">Manage the password for your currently signed-in admin account.</p><div id="v8PasswordMount"></div>
+<section class="panel" style="margin-top:22px" aria-labelledby="v9ContactHeading">
+<h2 id="v9ContactHeading">🌍 International Contact Management</h2>
+<p class="note">Update public contact details here. Changes appear on the customer website after saving. Use international format (+63...) for phone numbers. KakaoTalk and WeChat may need account IDs or official HTTPS links instead of phone numbers.</p>
+<form id="v9ContactForm"><div class="vehicle-fields">
+<label>Primary phone number<input id="v9Primary" type="tel" maxlength="35" placeholder="+639300257981" required></label>
+<label>Secondary phone number<input id="v9Secondary" type="tel" maxlength="35" placeholder="+639632230190"></label>
+<label>WhatsApp number<input id="v9WhatsApp" maxlength="35" placeholder="+639300257981"></label>
+<label>Viber number<input id="v9Viber" maxlength="35" placeholder="+639300257981"></label>
+<label>KakaoTalk account ID<input id="v9Kakao" maxlength="100" placeholder="KakaoTalk ID (optional)"></label>
+<label>WeChat account ID<input id="v9WeChat" maxlength="100" placeholder="WeChat ID (optional)"></label>
+<label class="wide">KakaoTalk official contact link (optional)<input id="v9KakaoUrl" type="url" placeholder="https://..."></label>
+<label class="wide">WeChat official contact link (optional)<input id="v9WeChatUrl" type="url" placeholder="https://..."></label>
+<label class="wide">Facebook page link<input id="v9Facebook" type="url" placeholder="https://www.facebook.com/..."></label>
+</div><div class="vehicle-actions"><button type="submit" class="primary" id="v9ContactSave">Save Contact Settings</button></div></form>
+<p class="message" role="status" id="v9ContactMsg"></p>
+<p class="note">Only the phone numbers, IDs and links entered here are published. Do not enter passwords or private vehicle details.</p>
+</section>
+</section></section>
 </main>
-<script src="admin.js?v=8" type="module"></script>
+<script src="admin.js?v=9" type="module"></script>
 <script src="admin-v5.js?v=6" type="module"></script>
 <script src="admin-v7.js?v=1" type="module"></script></body>
 </html>
