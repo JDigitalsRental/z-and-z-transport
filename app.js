@@ -4,7 +4,9 @@ import {
   collection,
   addDoc,
   onSnapshot,
-  serverTimestamp
+  serverTimestamp,
+  doc,
+  onSnapshot as onSettingsSnapshot
 } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
 
 'use strict';
@@ -249,7 +251,9 @@ $('bookingForm').addEventListener('submit', event => {
     return;
   }
 
-  message = `Hi Z & Z Transport Services! 🚗\n\nI would like to request a rental quotation.\n\nFull Name: ${$('fullName').value.trim()}\nContact Number: ${$('phone').value.trim()}\nVehicle Category: ${vehicle.name}\nService Type: ${$('service').value}\nPickup Date: ${pickup}\nReturn Date: ${returnDate}\nPickup Location: ${$('pickupLocation').value.trim()}\nDestination / Route: ${$('destination').value.trim() || 'Not specified'}\nPassengers: ${$('passengers').value || 'Not specified'}\nAdditional Notes: ${$('notes').value.trim() || 'None'}\n\nPlease confirm vehicle availability, final pricing, and rental requirements. Thank you!`;
+  const contactMethod = $('v9ContactMethod')?.value || 'Facebook Messenger';
+  const flight = $('v9Flight')?.value.trim() || '';
+  message = `Hi Z & Z Transport Services! 🚗\n\nI would like to request a rental quotation.\n\nFull Name: ${$('fullName').value.trim()}\nContact Number: ${$('phone').value.trim()}\nPreferred Contact: ${contactMethod}\nFlight Number: ${flight || 'Not provided'}\nVehicle Category: ${vehicle.name}\nService Type: ${$('service').value}\nPickup Date: ${pickup}\nReturn Date: ${returnDate}\nPickup Location: ${$('pickupLocation').value.trim()}\nDestination / Route: ${$('destination').value.trim() || 'Not specified'}\nPassengers: ${$('passengers').value || 'Not specified'}\nAdditional Notes: ${$('notes').value.trim() || 'None'}\n\nPlease confirm vehicle availability, final pricing, and rental requirements. Thank you!`;
 
   $('bookingMessage').textContent = message;
   $('bookingSummary').classList.add('show');
@@ -268,7 +272,7 @@ $('bookingForm').addEventListener('submit', event => {
       pickupLocation: $('pickupLocation').value.trim(),
       destination: $('destination').value.trim(),
       passengers: Number($('passengers').value) || null,
-      notes: $('notes').value.trim()
+      notes: [$('notes').value.trim(), 'Preferred contact: '+contactMethod, flight ? 'Flight: '+flight : ''].filter(Boolean).join(' | ')
     }
   }));
 });
@@ -407,4 +411,39 @@ window.addEventListener('zz-inquiry-ready', async ({ detail }) => {
     if (location.hash === '#booking') openPopup();
   });
   if (location.hash === '#booking') openPopup();
+})();
+
+// V9 — Public contact buttons, live from Firestore publicSettings/contact.
+(function initV9PublicContacts(){
+  const target=document.getElementById('v9PublicContacts');
+  if (!target) return;
+  const defaults={primary:'+639300257981',secondary:'+639632230190',whatsapp:'+639300257981',viber:'+639300257981',facebook:'https://www.facebook.com/profile.php?id=100065128595546'};
+  function render(data){
+    target.replaceChildren();
+    const add=(label,detail,href)=>{
+      if(!detail) return;
+      const box=document.createElement('div');box.style.cssText='padding:15px;border:1px solid #66502d;border-radius:12px;background:#111216';
+      const name=document.createElement('strong');name.textContent=label;name.style.color='#e7c777';
+      const p=document.createElement('p');p.textContent=detail;p.style.overflowWrap='anywhere';
+      box.append(name,p);
+      if(href){const a=document.createElement('a');a.className='btn';a.textContent='OPEN '+label.toUpperCase()+' ↗';a.href=href;a.target='_blank';a.rel='noopener noreferrer';box.append(a);}
+      else {const b=document.createElement('button');b.type='button';b.className='btn';b.textContent='COPY '+label.toUpperCase()+' ID';b.onclick=async()=>{try{await navigator.clipboard.writeText(detail);b.textContent='COPIED ✓';}catch{b.textContent='PLEASE COPY ID ABOVE';}};box.append(b);}
+      target.append(box);
+    };
+    const digits=s=>String(s||'').replace(/\D/g,'');
+    const phone=s=>{let d=digits(s);if(d.startsWith('0'))d='63'+d.slice(1);return d;};
+    const safeUrl=s=>/^https:\/\/[^\s]+$/i.test(s||'')?s:null;
+    add('WhatsApp',data.whatsapp||data.primary,data.whatsapp||data.primary?'https://wa.me/'+phone(data.whatsapp||data.primary):null);
+    add('Viber',data.viber||data.primary,data.viber||data.primary?'viber://chat?number=%2B'+phone(data.viber||data.primary):null);
+    add('KakaoTalk',data.kakao||'Contact us for our KakaoTalk QR code',safeUrl(data.kakaoUrl));
+    add('WeChat',data.wechat||'Contact us for our WeChat QR code',safeUrl(data.wechatUrl));
+    add('Facebook', 'Official Facebook Page',safeUrl(data.facebook));
+    add('Phone',data.primary,data.primary?'tel:+'+phone(data.primary):null);
+    if(data.secondary) add('Alternate Phone',data.secondary,'tel:+'+phone(data.secondary));
+  }
+  render(defaults);
+  onSettingsSnapshot(doc(db,'publicSettings','contact'),snap=>{if(snap.exists())render({...defaults,...snap.data()});},err=>{
+    console.warn('Public contact settings unavailable:',err);
+    const p=document.createElement('p');p.className='tiny muted';p.textContent='Showing default contact information. Contact settings sync may require Firestore rule updates.';target.append(p);
+  });
 })();
