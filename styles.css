@@ -1123,44 +1123,81 @@ body{background:#08090b}
   #services .card:hover { transform:none; }
 }
 
-/* ==========================================================
-   V12 — ONE CONTINUOUS HERO PHOTO THROUGH THE ENTIRE PAGE
-   Reuses the exact photo URL from the existing hero.
-   Only visual backgrounds change; booking behavior untouched.
-   ========================================================== */
-html { background: #090a0d; }
-body {
+/* =============================================================
+   V13 — SEAMLESS FULL-PAGE DRIVING PHOTO
+   Fixes opaque section overrides, especially .zz-destinations.
+   Presentation-only; all existing HTML and JS remain unchanged.
+   ============================================================= */
+
+/* Put one photo on the root canvas so it persists between sections. */
+html {
   background-color: #090a0d;
   background-image:
-    linear-gradient(180deg,rgba(5,7,10,.77),rgba(5,7,10,.82)),
+    linear-gradient(rgba(5,7,10,.77), rgba(5,7,10,.82)),
     url("https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=1800&q=85");
   background-position: center center;
   background-size: cover;
   background-repeat: no-repeat;
   background-attachment: fixed;
 }
-/* Transparent section surfaces expose the same body photo. */
-.hero, #services, #fleet, #destinations, #why, #contact, #faq,
-section, main, footer, .footer {
-  background-color: transparent !important;
-  background-image: none !important;
+body {
+  background: transparent !important;
+  min-height: 100vh;
 }
-/* Disable competing photos and overlays within the sections. */
-.hero::before, #services::before, #services::after, #fleet::before,
-#destinations::before, #why::before, #contact::before, #faq::before {
+
+/* Override both ID- and class-based opaque section backgrounds. */
+body .hero,
+body #services,
+body #fleet,
+body #destinations,
+body .zz-destinations,
+body #why,
+body #contact,
+body #faq,
+body #booking,
+body .section,
+body .section.alt,
+body main,
+body footer,
+body .footer {
+  background: transparent !important;
+}
+
+/* Remove old per-section scenery; keep destination CARD photos. */
+.hero::before,
+#services::before,
+#services::after,
+#fleet::before,
+#destinations::before,
+#why::before,
+#contact::before,
+#faq::before {
   background: none !important;
   box-shadow: none !important;
 }
-/* Preserve readable premium cards and the navigation. */
-#services .card, #why .card, .vehicle, #contact .card,
-#faq .card, .hero-card {
+
+/* A subtle consistent shade without creating visible section edges. */
+body .section,
+body .zz-destinations,
+body .footer {
+  box-shadow: none;
+}
+
+/* Keep cards readable on top of the photo. */
+#services .card,
+#why .card,
+#fleetGrid .vehicle,
+#contact .card,
+#faq .card,
+.hero-card {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
+
+/* The root background remains fixed even on smaller screens.
+   Mobile browsers may choose to scroll it for performance. */
 @media (max-width: 800px) {
-  body {
-    background-attachment: scroll;
-    background-size: auto 100%;
+  html {
     background-position: center top;
+    background-size: cover;
   }
-}
